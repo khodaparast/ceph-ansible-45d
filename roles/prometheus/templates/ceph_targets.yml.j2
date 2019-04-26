@@ -1,0 +1,7 @@
+---
+- targets:
+{% for host in groups['mons'] %}
+  - {{ host }}:9283
+{% endfor %}
+  labels:
+    instance: ceph_cluster
