@@ -1,0 +1,15 @@
+- hosts: dashboards
+  become: True
+  roles:
+    - prometheus
+  vars:
+    prometheus_components: [ "prometheus", "node_exporter", "alertmanager" ]
+    prometheus_conf_main: "/files/prometheus.yml"
+
+- hosts: nodes
+  become: True
+  roles:
+    - prometheus
+  vars:
+    prometheus_components: [ "node_exporter" ]
+    prometheus_node_exporter_version: 0.15.2

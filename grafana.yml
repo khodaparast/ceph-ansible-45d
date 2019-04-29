@@ -1,0 +1,31 @@
+---
+- name: Set up grafana
+  hosts: dashboards
+  any_errors_fatal: yes
+
+  roles:
+    - grafana2
+  vars:
+    grafana_version: 5.0.0
+    grafana_security:
+        admin_user: admin
+        admin_password: "admin"
+    grafana_auth:
+        disable_login_form: false
+        disable_signout_menu: false
+        anonymous:
+          org_name: "45Drives"
+          org_role: Viewer
+        basic: True
+    grafana_datasources:
+      - name: "Prometheus"
+        type: "prometheus"
+        access: "proxy"
+        url: "http://localhost:9090"
+        basicAuth: true
+        basicAuthUser: "admin"
+        basicAuthPassword: "admin"
+        isDefault: true
+        jsonData: '{"tlsAuth":false,"tlsAuthWithCACert":false,"tlsSkipVerify":true}'
+        no_log: false
+
