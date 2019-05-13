@@ -198,6 +198,7 @@
     - item.value.partitions|count == 0
     - item.value.holders|count == 0
     - item.key is not match osd_auto_discovery_exclude
+    - "'md' not in item.key"
 
 - name: set_fact ceph_uid for debian based system - non container
   set_fact:
