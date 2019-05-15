@@ -1,7 +1,6 @@
 #!/bin/bash
 
 ## VARIBLES
-MINIMUM_KERNEL_VERSION='3.10.0-862.'
 HOME=$(pwd)
 
 ## DEPENDENCIES
@@ -9,23 +8,14 @@ yum install -y -q -e 0 pyparsing python-kmod python-gobject python-urwid \
     python-rados python-rbd python-netaddr python-netifaces \
     python-crypto python-requests python-flask pyOpenSSL git
 
-## VERIFY KERNEL
-echo "Verify Kernel Version:....."
-KERNEL=$(uname -r)
-if [[ $KERNEL != *"$MINIMUM_KERNEL_VERSION"* ]];then
-    echo "Kernel $MINIMUM_KERNEL_VERSION* or greater required"
-    echo "Currently running version:$KERNEL"
-    exit 1
-fi
-echo "VERIFIED: $KERNEL"
+
 
 ## DOWNLOAD SOURCE PACKAGES
 git clone https://github.com/open-iscsi/tcmu-runner
 git clone https://github.com/open-iscsi/rtslib-fb.git
 git clone https://github.com/open-iscsi/configshell-fb.git
 git clone https://github.com/open-iscsi/targetcli-fb.git
-git clone https://github.com/ceph/ceph-iscsi-config.git
-git clone https://github.com/ceph/ceph-iscsi-cli.git
+git clone https://github.com/ceph/ceph-iscsi.git
 
 ## TCMU-RUNNER
 cd $HOME
@@ -33,7 +23,6 @@ cd tcmu-runner
 sed -e '/glusterfs-api/ s/^#*/#/' -i extra/install_dep.sh
 sh extra/install_dep.sh
 cmake -Dwith-glfs=false -Dwith-qcow=false -DSUPPORT_SYSTEMD=ON -DCMAKE_INSTALL_PREFIX=/usr
-vim +1370 rbd.c
 make
 make install
 systemctl daemon-reload
@@ -59,17 +48,14 @@ python setup.py install --record uninstall.txt
 mkdir /etc/target
 mkdir /var/target
 
-## ceph-iscsi-config
+## ceph-iscsi
 cd $HOME
-cd ceph-iscsi-config
+cd ceph-iscsi
 python setup.py install --record uninstall.txt
 cp usr/lib/systemd/system/rbd-target-gw.service /lib/systemd/system
-
-## ceph-iscsi-cli
-cd $HOME
-cd ceph-iscsi-cli
-python setup.py install --record uninstall.txt
 cp usr/lib/systemd/system/rbd-target-api.service /lib/systemd/system
+
+
 
 cat << EOF > /etc/ceph/iscsi-gateway.cfg
 [config]
