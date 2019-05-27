@@ -32,7 +32,7 @@ ceph_nfs_enable_service: true
 # Ceph filesystem, and ganesha's attribute and directory caching is disabled
 # as much as possible since libcephfs clients also caches the same
 # information.
-nfs_file_gw: false
+nfs_file_gw: true
 # Enable NFS Object access
 nfs_obj_gw: true
 
@@ -40,15 +40,24 @@ nfs_obj_gw: true
 # NFS Ganesha Config #
 ######################
 ceph_nfs_log_file: "/var/log/ganesha/ganesha.log"
-ceph_nfs_dynamic_exports: false
+ceph_nfs_ceph_user: "admin"
+ceph_nfs_dynamic_exports: true
 # If set to true then rados is used to store ganesha exports
 # and client sessions information, this is useful if you
 # run multiple nfs-ganesha servers in active/passive mode and
 # want to do failover
-ceph_nfs_rados_backend: false
-# Name of the rados object used to store a list of the export rados
+ceph_nfs_rados_driver: true
+# backend mode, either rados_kv,rados_ng, or rados_cluster
+# Default (rados_ng) is for for single gateway/active-passive use. rados_kv is obseleted by rados_ng
+# rados_cluster is for active-active nfs cluster. Requires ganesha-grace-db to be initilaized
+ceph_nfs_rados_backend_driver: rados_ng
+
+# Name of the rados namespace used to store a list of the export rados
 # object URLS
 ceph_nfs_rados_export_index: "ganesha-export-index"
+# Name of the rados namespace used to store a list of the grace rados
+# object URLS
+ceph_nfs_rados_grace: "ganesha-grace"
 # Address ganesha service should listen on, by default ganesha listens on all
 # addresses. (Note: ganesha ignores this parameter in current version due to
 # this bug: https://github.com/nfs-ganesha/nfs-ganesha/issues/217)
@@ -69,7 +78,6 @@ ceph_nfs_ceph_export_id: 20133
 ceph_nfs_ceph_pseudo_path: "/cephfile"
 ceph_nfs_ceph_protocols: "3,4"
 ceph_nfs_ceph_access_type: "RW"
-ceph_nfs_ceph_user: "admin"
 ceph_nfs_ceph_squash: "Root_Squash"
 
 ###################

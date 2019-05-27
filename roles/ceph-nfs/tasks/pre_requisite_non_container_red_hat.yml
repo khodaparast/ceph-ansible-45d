@@ -45,6 +45,16 @@
       when:
         - nfs_file_gw
 
+    - name: install nfs ganesha rados grace 
+      package:
+        name: nfs-ganesha-rados-grace
+        state: "{{ (upgrade_ceph_packages|bool) | ternary('latest','present') }}"
+      register: result
+      until: result is succeeded
+      when:
+        - nfs_file_gw
+        - ceph_nfs_rados_backed_mode == 'rados_cluster'
+
     - name: install redhat nfs-ganesha-rgw and ceph-radosgw packages
       package:
         name: ['nfs-ganesha-rgw', 'ceph-radosgw']
