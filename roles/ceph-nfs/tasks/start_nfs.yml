@@ -37,18 +37,17 @@
   when:
     - ceph_nfs_rados_backend
   delegate_to: "{{ groups[mon_group_name][0] }}"
-  run_once: true
 - name: initialize ganesha rados grace database
-  command: "{{ docker_exec_cmd_nfs | default('') }} ganesha-rados-grace -p {{ cephfs_metadata }} -n {{ ceph_nfs_rados_grace }} add {{ ansible-hostname }}"
+  command: "{{ docker_exec_cmd_nfs | default('') }} ganesha-rados-grace -p {{ cephfs_metadata }} -n {{ ceph_nfs_rados_grace }} add {{ ansible_hostname }}"
   when:
     - ceph_nfs_rados_backend
-    - ceph_nfs_rados_backed_mode == 'rados_cluster'
+    - ceph_nfs_rados_backend_driver == 'rados_cluster'
     - rados_grace_exists.rc != 0
 ######## CREATE GRACE DB
 
 ##### CREATE EXPORT INDEX OBJECTS
 - name: check if rados export index object exists
-  shell: "{{ docker_exec_cmd_nfs | default('') }} rados -p {{ cephfs_metadata }} -N {{ ceph_nfs_rados_export_index }} --cluster {{ cluster }} ls|grep conf-{{ ansible-hostname }}/"
+  shell: "{{ docker_exec_cmd_nfs | default('') }} rados -p {{ cephfs_metadata }} -N {{ ceph_nfs_rados_export_index }} --cluster {{ cluster }} ls|grep conf-{{ ansible_hostname }}/"
   changed_when: false
   failed_when: false
   register: rados_index_exists

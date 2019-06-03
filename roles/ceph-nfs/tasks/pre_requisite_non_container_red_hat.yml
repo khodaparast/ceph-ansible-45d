@@ -53,7 +53,7 @@
       until: result is succeeded
       when:
         - nfs_file_gw
-        - ceph_nfs_rados_backed_mode == 'rados_cluster'
+        - ceph_nfs_rados_backend_driver == 'rados_cluster'
 
     - name: install redhat nfs-ganesha-rgw and ceph-radosgw packages
       package:
