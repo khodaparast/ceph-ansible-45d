@@ -1,0 +1,23 @@
+global: 
+  scrape_interval:     15s
+  evaluation_interval: 15s
+
+rule_files:
+  - rules/alert_rules.yml
+
+alerting:
+  alertmanagers:
+  - static_configs:
+    - targets:
+      - localhost:9093
+
+scrape_configs:
+  - job_name: 'node'
+    file_sd_configs:
+      - files:
+        - tgroups/node_targets.yml
+  - job_name: 'ceph'
+    honor_labels: true
+    file_sd_configs:
+      - files:
+        - tgroups/ceph_targets.yml
