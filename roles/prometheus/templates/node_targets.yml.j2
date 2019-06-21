@@ -1,7 +1,0 @@
----
-{% for host in groups['nodes'] %}
-- targets:
-  - {{ host }}:9100
-  labels:
-    instance: {{ host.split('.')[0] }}
-{% endfor %}

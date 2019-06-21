@@ -50,7 +50,7 @@ ceph_nfs_rados_driver: true
 # backend mode, either rados_kv,rados_ng, or rados_cluster
 # Default (rados_ng) is for for single gateway/active-passive use. rados_kv is obseleted by rados_ng
 # rados_cluster is for active-active nfs cluster. Requires ganesha-grace-db to be initilaized
-ceph_nfs_rados_backend_driver: rados_ng
+ceph_nfs_rados_backend_driver: rados_cluster
 
 # Name of the rados namespace used to store a list of the export rados
 # object URLS

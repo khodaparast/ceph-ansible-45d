@@ -1,0 +1,76 @@
+---
+- name: config_cephfs | Get admin secret
+  command: "{{ container_exec_cmd }} ceph auth get-key client.admin"
+  register: cephfs_admin_secret
+  delegate_to: "{{ groups[mon_group_name][0] }}"
+  changed_when: false
+
+- name: config_cephfs | Ensure cephfs dir exists
+  file:
+    path: "{{ ctdb_cephfs_mount }}"
+    state: directory
+    mode: 0755
+
+- name: config_cephfs | Mount cephfs as admin user temporarily
+  mount:
+    name: "{{ ctdb_cephfs_mount }}"
+    src: "{{ groups[mon_group_name][0] }}:6789:/"
+    fstype: "ceph"
+    opts: "name=admin,secret={{ cephfs_admin_secret }},_netdev,noatime"
+    state: mounted
+
+- name: config_cephfs | Create directory smb
+  file:
+    path: "{{ ctdb_cephfs_mount }}/fsgw"
+    state: directory
+    mode: 0755
+
+- name: config_cephfs | Create directory for ctdb
+  file:
+    path: "{{ ctdb_cephfs_mount }}/ctdb"
+    state: directory
+    mode: 0755
+
+- name: config_cephfs | Set quota on CTDB dir
+  command: "setfattr -n ceph.quota.max_bytes -v 1074000000 {{ ctdb_cephfs_mount }}/ctdb"
+  changed_when: false
+
+- name: config_cephfs | Unmount cephfs as admin user 
+  mount:
+    name: "{{ ctdb_cephfs_mount }}"
+    state: absent 
+
+- name: config_cephfs | Create samba cephx user
+  ceph_key:
+    name: "{{ item.name }}"
+    state: present
+    caps: "{{ item.caps }}"
+    cluster: "{{ cluster }}"
+    secret: "{{ item.key | default('') }}"
+  with_items: "{{ samba_keyring }}"
+
+- name: config_cephfs | Create systemd mount service for fsgw dir
+  template:
+    src: "etc/systemd/system/mnt-cephfs-fsgw.mount"
+    dest: "/etc/systemd/system/mnt-cephfs-fsgw.mount"
+    owner: root
+    group: root
+    mode: 0644
+  notify:
+    - reload systemctl
+
+- name: config_cephfs | Enable mnt-cephfs-fsgw service
+
+
+- name: config_cephfs | Create systemd mount service for ctdb dir
+  template:
+    src: "etc/systemd/system/mnt-cephfs-ctdb.mount"
+    dest: "/etc/systemd/system/mnt-cephfs-ctdb.mount"
+    owner: root
+    group: root
+    mode: 0644
+  notify:
+    - reload systemctl
+
+- name: config_cephfs | Enable mnt-cephfs-ctdb service
+

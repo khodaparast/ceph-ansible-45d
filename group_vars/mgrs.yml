@@ -15,19 +15,24 @@ dummy:
 # distributed on MGR nodes. Setting 'copy_admin_key' to 'true'
 # will copy the admin key to the /etc/ceph/ directory
 copy_admin_key: true
+#mgr_secret: 'mgr_secret'
 
 
 ###########
 # MODULES #
 ###########
 # Ceph mgr modules to enable, to view the list of available mpdules see: http://docs.ceph.com/docs/CEPH_VERSION/mgr/
-# and replace CEPH_VERSION with your current Ceph version, e,g: 'nautilus'
-ceph_dashboard: true
-ceph_diskprediction: true
-diskprediction_mode: local
-## options are cloud(paid) or local(free)
+# and replace CEPH_VERSION with your current Ceph version, e,g: 'mimic'
+ceph_mgr_modules: [ "status", "prometheus", "dashboard" ]
 
-ceph_mgr_modules: [ "status", "dashboard", "prometheus", "diskprediction_{{ diskprediction_mode }}" ]
+############
+# PACKAGES #
+############
+# Ceph mgr packages to install, ceph-mgr + extra module packages.
+ceph_mgr_packages:
+  - ceph-mgr
+  - ceph-mgr-dashboard
+#  - ceph-mgr-diskprediction-local
 
 
 ##########

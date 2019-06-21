@@ -1,0 +1,53 @@
+---
+- name: red hat based systems - install samba/ctdb/winbind packages
+  block:
+    - name: install samba
+      package:
+        name: samba
+        state: "{{ (upgrade_ceph_packages|bool) | ternary('latest','present') }}"
+      register: result
+      until: result is succeeded
+      when:
+        - samba_file_gw | bool
+
+    - name: install samba-winbind 
+      package:
+        name: samba-winbind
+        state: "{{ (upgrade_ceph_packages|bool) | ternary('latest','present') }}"
+      register: result
+      until: result is succeeded
+      when:
+        - samba_file_gw | bool
+        - samba_ad_member | bool
+
+    - name: install samba-winbind-clients 
+      package:
+        name: samba-winbind-clients
+        state: "{{ (upgrade_ceph_packages|bool) | ternary('latest','present') }}"
+      register: result
+      until: result is succeeded
+      when:
+        - samba_file_gw | bool
+        - samba_ad_member | bool
+
+    - name: install pam_krb5
+      package:
+        name: pam_krb5
+        state: "{{ (upgrade_ceph_packages|bool) | ternary('latest','present') }}"
+      register: result
+      until: result is succeeded
+      when:
+        - samba_file_gw | bool
+        - samba_ad_member | bool
+        - samba_cluster | bool
+        
+    - name: install ctdb
+      package:
+        name: ctdb
+        state: "{{ (upgrade_ceph_packages|bool) | ternary('latest','present') }}"
+      register: result
+      until: result is succeeded
+      when:
+        - samba_file_gw | bool
+        - samba_ad_member | bool
+        - samba_cluster | bool

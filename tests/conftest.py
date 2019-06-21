@@ -2,6 +2,18 @@ import pytest
 import os
 
 
+def str_to_bool(val):
+    try:
+        val = val.lower()
+    except AttributeError:
+        val = str(val).lower()
+    if val == 'true':
+        return True
+    elif val == 'false':
+        return False
+    else:
+        raise ValueError("Invalid input value: %s" % val)
+
 @pytest.fixture(scope="module")
 def setup(host):
     cluster_address = ""
@@ -59,7 +71,7 @@ def setup(host):
 
     if docker:
         container_binary = "docker"
-    if docker and host.exists("podman") and ansible_distribution in ["Fedora", "RedHat"]:  # noqa E501
+    if docker and str_to_bool(os.environ.get('IS_PODMAN', False)):  # noqa E501
         container_binary = "podman"
 
     data = dict(
@@ -97,9 +109,7 @@ def node(host, request):
     rolling_update = os.environ.get("ROLLING_UPDATE", "False")
     group_names = ansible_vars["group_names"]
     docker = ansible_vars.get("docker")
-    osd_scenario = ansible_vars.get("osd_scenario")
     radosgw_num_instances = ansible_vars.get("radosgw_num_instances", 1)
-    lvm_scenario = osd_scenario in ['lvm', 'lvm-batch']
     ceph_release_num = {
         'jewel': 10,
         'kraken': 11,
@@ -121,12 +131,6 @@ def node(host, request):
             request.function, group_names)
         pytest.skip(reason)
 
-    if request.node.get_closest_marker("no_lvm_scenario") and lvm_scenario:
-        pytest.skip("Not a valid test for lvm scenarios")
-
-    if not lvm_scenario and request.node.get_closest_marker("lvm_scenario"):
-        pytest.skip("Not a valid test for non-lvm scenarios")
-
     if request.node.get_closest_marker("no_docker") and docker:
         pytest.skip(
             "Not a valid test for containerized deployments or atomic hosts")
@@ -134,11 +138,6 @@ def node(host, request):
     if request.node.get_closest_marker("docker") and not docker:
         pytest.skip(
             "Not a valid test for non-containerized deployments or atomic hosts")  # noqa E501
-
-    journal_collocation_test = ansible_vars.get("osd_scenario") == "collocated"
-    if request.node.get_closest_marker("journal_collocation") and not journal_collocation_test:  # noqa E501
-        pytest.skip("Scenario is not using journal collocation")
-
 
 
     data = dict(

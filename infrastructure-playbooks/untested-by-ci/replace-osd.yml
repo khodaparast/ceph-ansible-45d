@@ -26,8 +26,7 @@
     - debug: msg="gather facts on all Ceph hosts for following reference"
 
 - name: confirm whether user really meant to replace osd(s)
-  hosts:
-    - localhost
+  hosts: localhost
   become: true
   vars_prompt:
     - name: ireallymeanit
@@ -59,13 +58,13 @@
         name: ceph-defaults
 
   post_tasks:
-    - name: set_fact docker_exec_cmd build docker exec command (containerized)
+    - name: set_fact container_exec_cmd build docker exec command (containerized)
       set_fact:
-        docker_exec_cmd: "docker exec ceph-mon-{{ hostvars[groups[mon_group_name][0]]['ansible_hostname'] }}"
-      when: containerized_deployment
+        container_exec_cmd: "docker exec ceph-mon-{{ hostvars[groups[mon_group_name][0]]['ansible_hostname'] }}"
+      when: containerized_deployment | bool
 
     - name: exit playbook, if can not connect to the cluster
-      command: "{{ docker_exec_cmd | default('') }} timeout 5 ceph --cluster {{ cluster }} health"
+      command: "{{ container_exec_cmd | default('') }} timeout 5 ceph --cluster {{ cluster }} health"
       register: ceph_health
       until: ceph_health.stdout.find("HEALTH") > -1
       delegate_to: "{{ groups[mon_group_name][0] }}"
@@ -73,7 +72,7 @@
       delay: 2
 
     - name: find the host(s) where the osd(s) is/are running on
-      command: "{{ docker_exec_cmd | default('') }} ceph --cluster {{ cluster }} osd find {{ item }}"
+      command: "{{ container_exec_cmd | default('') }} ceph --cluster {{ cluster }} osd find {{ item }}"
       with_items: "{{ osd_to_replace.split(',') }}"
       delegate_to: "{{ groups[mon_group_name][0] }}"
       register: find_osd_hosts
@@ -90,15 +89,14 @@
       with_items: "{{ osd_hosts }}"
       delegate_to: "{{ item }}"
       failed_when: false
-      when:
-        - not containerized_deployment
+      when: not containerized_deployment | bool
 
     - name: fail when admin key is not present
       fail:
         msg: "The Ceph admin key is not present on the OSD node, please add it and remove it after the playbook is done."
       with_items: "{{ ceph_admin_key.results }}"
       when:
-        - not containerized_deployment
+        - not containerized_deployment | bool
         - item.stat.exists == false
 
     # NOTE(leseb): using '>' is the only way I could have the command working
@@ -112,8 +110,7 @@
         - "{{ osd_to_replace.split(',') }}"
       register: osd_to_replace_disks
       delegate_to: "{{ item.0 }}"
-      when:
-        - containerized_deployment
+      when: containerized_deployment | bool
 
     - name: zapping osd(s) - container
       shell: >
@@ -125,8 +122,7 @@
         - "{{ osd_hosts }}"
         - "{{ osd_to_replace_disks.results }}"
       delegate_to: "{{ item.0 }}"
-      when:
-        - containerized_deployment
+      when: containerized_deployment | bool
 
     - name: zapping osd(s) - non container
       command: ceph-disk zap --cluster {{ cluster }} {{ item.1 }}
@@ -135,8 +131,7 @@
         - "{{ osd_hosts }}"
         - "{{ osd_to_replace_disks.results }}"
       delegate_to: "{{ item.0 }}"
-      when:
-        - not containerized_deployment
+      when: not containerized_deployment | bool
 
     - name: destroying osd(s)
       command: ceph-disk destroy --cluster {{ cluster }} --destroy-by-id {{ item.1 }} --zap
@@ -145,8 +140,7 @@
         - "{{ osd_hosts }}"
         - "{{ osd_to_replace.split(',') }}"
       delegate_to: "{{ item.0 }}"
-      when:
-        - not containerized_deployment
+      when: not containerized_deployment | bool
 
     - name: replace osd(s) - prepare - non container
       command: ceph-disk prepare {{ item.1 }}  --osd-id {{ item.2 }} --osd-uuid $(uuidgen)
@@ -188,9 +182,9 @@
         - "{{ osd_to_replace_disks.results }}"
 
     - name: show ceph health
-      command: "{{ docker_exec_cmd | default('') }} ceph --cluster {{ cluster }} -s"
+      command: "{{ container_exec_cmd | default('') }} ceph --cluster {{ cluster }} -s"
       delegate_to: "{{ groups[mon_group_name][0] }}"
 
     - name: show ceph osd tree
-      command: "{{ docker_exec_cmd | default('') }} ceph --cluster {{ cluster }} osd tree"
+      command: "{{ container_exec_cmd | default('') }} ceph --cluster {{ cluster }} osd tree"
       delegate_to: "{{ groups[mon_group_name][0] }}"

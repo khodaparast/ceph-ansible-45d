@@ -37,6 +37,7 @@
   when:
     - ceph_nfs_rados_backend
   delegate_to: "{{ groups[mon_group_name][0] }}"
+  
 - name: initialize ganesha rados grace database
   command: "{{ docker_exec_cmd_nfs | default('') }} ganesha-rados-grace -p {{ cephfs_metadata }} -n {{ ceph_nfs_rados_grace }} add {{ ansible_hostname }}"
   when:

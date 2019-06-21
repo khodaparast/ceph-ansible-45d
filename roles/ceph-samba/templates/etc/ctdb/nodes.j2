@@ -1,0 +1,3 @@
+{% for host in groups[ctdb_nodes_group] %}
+{{ hostvars[host]['ansible_default_ipv4']['address']}}
+{% endfor %}

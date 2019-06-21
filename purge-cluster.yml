@@ -42,19 +42,136 @@
     - "{{ nfs_group_name|default('nfss') }}"
     - "{{ client_group_name|default('clients') }}"
     - "{{ mgr_group_name|default('mgrs') }}"
+    - grafana-server
 
   become: true
 
   tasks:
     - debug: msg="gather facts on all Ceph hosts for following reference"
 
+
+- name: purge node-exporter
+  hosts:
+    - "{{ mon_group_name|default('mons') }}"
+    - "{{ osd_group_name|default('osds') }}"
+    - "{{ mds_group_name|default('mdss') }}"
+    - "{{ rgw_group_name|default('rgws') }}"
+    - "{{ rbdmirror_group_name|default('rbdmirrors') }}"
+    - "{{ nfs_group_name|default('nfss') }}"
+    - "{{ client_group_name|default('clients') }}"
+    - "{{ mgr_group_name|default('mgrs') }}"
+    - agents
+    - grafana-server
+    - clients
+    - iscsigws
+    - iscsi-gws # for backward compatibility only!
+
+  become: true
+
+  tasks:
+    - name: set ceph_docker_registry value if not set
+      set_fact:
+        ceph_docker_registry: "docker.io"
+      when: ceph_docker_registry is not defined
+
+    - name: disable node_exporter service
+      service:
+        name: node_exporter
+        state: stopped
+        enabled: no
+      failed_when: false
+
+    - name: remove node-exporter container
+      docker_container:
+        name: node_exporter
+        state: absent
+      failed_when: false
+
+    - name: remove node_exporter service file
+      file:
+        name: /etc/systemd/system/node_exporter.service
+        state: absent
+
+    - name: remove node-exporter image
+      docker_image:
+        image: "{{ ceph_docker_registry }}/prom/node-exporter"
+        state: absent
+        force: yes
+      tags:
+        - remove_img
+      failed_when: false
+
+
+- name: purge ceph grafana-server
+  hosts: grafana-server
+  become: true
+  vars:
+    grafana_services:
+      - grafana-server
+      - prometheus
+      - alertmanager
+
+  tasks:
+    - name: set ceph_docker_registry value if not set
+      set_fact:
+        ceph_docker_registry: "docker.io"
+      when: ceph_docker_registry is not defined
+
+    - name: stop services
+      service:
+        name: "{{ item }}"
+        state: stopped
+        enabled: no
+      with_items: "{{ grafana_services }}"
+      failed_when: false
+
+    - name: remove containers
+      docker_container:
+        name: "{{ item }}"
+        state: absent
+      with_items: "{{ grafana_services }}"
+      failed_when: false
+
+    - name: remove service files
+      file:
+        name: "/etc/systemd/system/{{ item }}.service"
+        state: absent
+      with_items: "{{ grafana_services }}"
+      failed_when: false
+
+    - name: remove images
+      docker_image:
+        name: "{{ item }}"
+        state: absent
+        force: yes
+      with_items:
+        - "{{ ceph_docker_registry }}/prom/prometheus"
+        - "{{ ceph_docker_registry }}/grafana/grafana"
+        - "{{ ceph_docker_registry }}/prom/alertmanager"
+      failed_when: false
+
+    - name: remove data
+      file:
+        name: "{{ item }}"
+        state: absent
+      with_items:
+        - /etc/grafana/dashboards
+        - /etc/grafana/grafana.ini
+        - /etc/grafana/provisioning
+        - /var/lib/grafana
+        - /etc/alertmanager
+        - /var/lib/alertmanager
+        - /var/lib/prometheus
+        - /etc/prometheus
+      failed_when: false
+
+
 - name: purge ceph mds cluster
 
   vars:
     mds_group_name: mdss
 
-  hosts:
-    - "{{ mds_group_name|default('mdss') }}"
+  hosts: "{{ mds_group_name|default('mdss') }}"
 
   gather_facts: false # Already gathered previously
 
@@ -75,8 +192,7 @@
   vars:
     mgr_group_name: mgrs
 
-  hosts:
-    - "{{ mgr_group_name|default('mgrs') }}"
+  hosts: "{{ mgr_group_name|default('mgrs') }}"
 
   gather_facts: false # Already gathered previously
 
@@ -92,14 +208,33 @@
     failed_when: false
     when: ansible_service_mgr == 'systemd'
 
+- name: purge rgwloadbalancer cluster
+
+  vars:
+    rgwloadbalancer_group_name: rgwloadbalancers
+
+  hosts:
+    - "{{ rgwloadbalancer_group_name|default('rgwloadbalancers') }}"
+
+  gather_facts: false # Already gathered previously
+
+  become: true
+
+  tasks:
+
+  - name: stop rgwloadbalancer services
+    service:
+      name: ['keepalived', 'haproxy']
+      state: stopped
+      enabled: no
+    failed_when: false
 
 - name: purge ceph rgw cluster
 
   vars:
     rgw_group_name: rgws
 
-  hosts:
-    - "{{ rgw_group_name|default('rgws') }}"
+  hosts: "{{ rgw_group_name|default('rgws') }}"
 
   gather_facts: false # Already gathered previously
 
@@ -120,8 +255,7 @@
   vars:
     rbdmirror_group_name: rbdmirrors
 
-  hosts:
-    - "{{ rbdmirror_group_name|default('rbdmirrors') }}"
+  hosts: "{{ rbdmirror_group_name|default('rbdmirrors') }}"
 
   gather_facts: false # Already gathered previously
 
@@ -141,8 +275,7 @@
   vars:
     nfs_group_name: nfss
 
-  hosts:
-    - "{{ nfs_group_name|default('nfss') }}"
+  hosts: "{{ nfs_group_name|default('nfss') }}"
 
   gather_facts: false # Already gathered previously
 
@@ -164,8 +297,7 @@
     osd_group_name: osds
     reboot_osd_node: False
 
-  hosts:
-    - "{{ osd_group_name|default('osds') }}"
+  hosts: "{{ osd_group_name|default('osds') }}"
 
   gather_facts: false # Already gathered previously
 
@@ -254,13 +386,8 @@
       - wait for server to boot
       - remove data
     when:
-      - reboot_osd_node
+      - reboot_osd_node | bool
       - remove_osd_mountpoints.failed is defined
-
-  - name: see if ceph-disk is installed
-    shell: "which ceph-disk"
-    failed_when: false
-    register: ceph_disk_present
 
   - name: wipe table on dm-crypt devices
     command: dmsetup wipe_table --force "{{ item }}"
@@ -324,7 +451,6 @@
     with_items: "{{ lvm_volumes }}"
     when:
       - lvm_volumes | default([]) | length > 0
-      - osd_scenario == "lvm"
       - ceph_volume_present.rc == 0
 
   - name: zap and destroy osds created by ceph-volume with devices
@@ -336,7 +462,6 @@
     with_items: "{{ devices | default([]) }}"
     when:
       - devices | default([]) | length > 0
-      - osd_scenario == "lvm"
       - ceph_volume_present.rc == 0
 
   - name: get ceph block partitions
@@ -375,8 +500,7 @@
   - name: resolve parent device
     command: lsblk --nodeps -no pkname "{{ item }}"
     register: tmp_resolved_parent_device
-    with_items:
-      - "{{ combined_devices_list }}"
+    with_items: "{{ combined_devices_list }}"
 
   - name: set_fact resolved_parent_device
     set_fact:
@@ -402,16 +526,14 @@
       parted -s /dev/"{{ item }}" mklabel gpt
       partprobe /dev/"{{ item }}"
       udevadm settle --timeout=600
-    with_items:
-      - "{{ resolved_parent_device }}"
+    with_items: "{{ resolved_parent_device }}"
 
 - name: purge ceph mon cluster
 
   vars:
     mon_group_name:       mons
 
-  hosts:
-    - "{{ mon_group_name|default('mons') }}"
+  hosts: "{{ mon_group_name|default('mons') }}"
 
   gather_facts: false # already gathered previously
 
@@ -461,6 +583,7 @@
       - ceph-release
       - ceph-radosgw
       - calamari-server
+      - ceph-grafana-dashboards
 
     ceph_remaining_packages:
       - libcephfs1
@@ -468,9 +591,14 @@
       - librados2
       - libradosstriper1
       - librbd1
+      - python-ceph-argparse
       - python-cephfs
       - python-rados
       - python-rbd
+
+    extra_packages:
+      - keepalived
+      - haproxy
 
   hosts:
     - "{{ mon_group_name|default('mons') }}"
@@ -481,6 +609,7 @@
     - "{{ nfs_group_name|default('nfss') }}"
     - "{{ client_group_name|default('clients') }}"
     - "{{ mgr_group_name|default('mgrs') }}"
+    - grafana-server
 
   gather_facts: false # Already gathered previously
 
@@ -529,7 +658,7 @@
       state: absent
     when:
       - ansible_pkg_mgr == 'yum'
-      - purge_all_packages == true
+      - purge_all_packages | bool
 
   - name: purge remaining ceph packages with dnf
     dnf:
@@ -537,7 +666,7 @@
       state: absent
     when:
       - ansible_pkg_mgr == 'dnf'
-      - purge_all_packages == true
+      - purge_all_packages | bool
 
   - name: purge remaining ceph packages with apt
     apt:
@@ -545,12 +674,40 @@
       state: absent
     when:
       - ansible_pkg_mgr == 'apt'
+      - purge_all_packages | bool
+
+  - name: purge extra packages with yum
+    yum:
+      name: "{{ extra_packages }}"
+      state: absent
+    when:
+      - ansible_pkg_mgr == 'yum'
+      - purge_all_packages == true
+
+  - name: purge extra packages with dnf
+    dnf:
+      name: "{{ extra_packages }}"
+      state: absent
+    when:
+      - ansible_pkg_mgr == 'dnf'
+      - purge_all_packages == true
+
+  - name: purge extra packages with apt
+    apt:
+      name: "{{ extra_packages }}"
+      state: absent
+    when:
+      - ansible_pkg_mgr == 'apt'
       - purge_all_packages == true
 
   - name: remove config
     file:
-     path: /etc/ceph
-     state: absent
+      path: "{{ item }}"
+      state: absent
+    with_items:
+      - /etc/ceph
+      - /etc/keepalived
+      - /etc/haproxy
 
   - name: remove logs
     file:
@@ -562,8 +719,7 @@
       module: command
         echo requesting data removal
     become: false
-    notify:
-      - remove data
+    notify: remove data
 
   - name: purge dnf cache
     command: dnf clean all
@@ -578,10 +734,14 @@
     command: apt-get clean
     when: ansible_pkg_mgr == 'apt'
 
-  - name: purge rh_storage.repo file in /etc/yum.repos.d
+  - name: purge ceph repo file in /etc/yum.repos.d
     file:
-      path: /etc/yum.repos.d/rh_storage.repo
+      path: '/etc/yum.repos.d/{{ item }}.repo'
       state: absent
+    with_items:
+      - ceph-dev
+      - ceph_stable
+      - rh_storage
     when: ansible_os_family == 'RedHat'
 
   - name: check for anything running ceph
@@ -601,15 +761,13 @@
     file:
       path: "{{ item.path }}"
       state: absent
-    with_items:
-      - "{{ systemd_files.files }}"
+    with_items: "{{ systemd_files.files }}"
     when: ansible_service_mgr == 'systemd'
 
 
 - name: purge fetch directory
 
-  hosts:
-    - localhost
+  hosts: localhost
 
   gather_facts: false
 

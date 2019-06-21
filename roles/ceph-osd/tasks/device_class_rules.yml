@@ -1,0 +1,51 @@
+---
+#- name: create hdd replicated crush rule
+#  command: "{{ container_exec_cmd }} ceph --cluster {{ cluster }} osd crush rule create-replicated {{ item.name }} {{ item.root }} {{ item.type }} {{ item.device }}"
+#  with_items: "{{ device_crush_hdd_rule }}"
+#  changed_when: false
+
+- name: create configured crush rules
+  command: "{{ container_exec_cmd }} ceph --cluster {{ cluster }} osd crush rule create-replicated {{ item.name }} {{ item.root }} {{ item.type }} {{ item.device }}"
+  with_items: "{{ device_crush_rules | unique }}"
+  changed_when: false
+
+#- name: create ssd replicated crush rule
+#  command: "{{ container_exec_cmd }} ceph --cluster {{ cluster }} osd crush rule create-replicated {{ item.name }} {{ item.root }} {{ item.type }} {{ item.device }}"
+#  with_items: "{{ device_crush_ssd_rule }}"
+#  changed_when: false
+#  when:
+#    - hybrid_cluster | bool
+ 
+- name: get id for new default crush rule
+  command: "{{ container_exec_cmd }} ceph --cluster {{ cluster }} osd -f json crush rule dump {{ item.name }}"
+  register: info_ceph_default_crush_rule
+  changed_when: false
+  with_items: "{{ device_crush_rules }}"
+  when:
+    - item.default
+
+- name: set_fact info_ceph_default_crush_rule_yaml
+  set_fact:
+    info_ceph_default_crush_rule_yaml: "{{ item.stdout | from_json() }}"
+  with_items: "{{ info_ceph_default_crush_rule.results }}"
+  when:
+    - not item.get('skipped', false)
+
+- name: insert new default crush rule into daemon to prevent restart
+  command: "{{ hostvars[item]['container_exec_cmd'] | default('') }} ceph --cluster {{ cluster }} daemon mon.{{ hostvars[item]['monitor_name'] }} config set osd_pool_default_crush_rule {{ info_ceph_default_crush_rule_yaml.rule_id }}"
+  changed_when: false
+  delegate_to: "{{ item }}"
+  with_items: "{{ groups[mon_group_name] }}"
+  when:
+    - info_ceph_default_crush_rule_yaml | default('') | length > 0
+
+- name: "add new default crush rule to {{ cluster }}.conf"
+  ini_file:
+    dest: "/etc/ceph/{{ cluster }}.conf"
+    section: "global"
+    option: "osd pool default crush rule"
+    value: "{{ info_ceph_default_crush_rule_yaml.rule_id }}"
+  delegate_to: "{{ item }}"
+  with_items: "{{ groups[mon_group_name] }}"
+  when:
+    - info_ceph_default_crush_rule_yaml | default('') | length > 0

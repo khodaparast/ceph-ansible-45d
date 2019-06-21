@@ -1,14 +1,13 @@
 ---
-- name: set_fact docker_exec_cmd mds
+- name: set_fact container_exec_cmd mds
   set_fact:
-    docker_exec_cmd: "{{ container_binary }} exec ceph-mds-{{ ansible_hostname }}"
+    container_exec_cmd: "{{ container_binary }} exec ceph-mds-{{ ansible_hostname }}"
 
 - name: set_fact admin_keyring
   set_fact:
     admin_keyring:
       - "/etc/ceph/{{ cluster }}.client.admin.keyring"
-  when:
-    - copy_admin_key
+  when: copy_admin_key
 
 - name: set_fact ceph_config_keys
   set_fact:
@@ -18,8 +17,7 @@
 - name: merge ceph_config_keys and admin_keyring
   set_fact:
     ceph_config_keys: "{{ ceph_config_keys + admin_keyring }}"
-  when:
-    - copy_admin_key
+  when: copy_admin_key
 
 - name: stat for ceph config and keys
   stat:
@@ -53,8 +51,7 @@
     owner: "root"
     group: "root"
     mode: "0644"
-  notify:
-    - restart ceph mdss
+  notify: restart ceph mdss
 
 - name: systemd start mds container
   systemd:
@@ -65,7 +62,7 @@
     daemon_reload: yes
 
 - name: wait for mds socket to exist
-  command: "{{ docker_exec_cmd }} sh -c 'stat /var/run/ceph/{{ cluster }}-mds.{{ ansible_hostname }}.asok || stat /var/run/ceph/{{ cluster }}-mds.{{ ansible_fqdn }}.asok'"
+  command: "{{ container_exec_cmd }} sh -c 'stat /var/run/ceph/{{ cluster }}-mds.{{ ansible_hostname }}.asok || stat /var/run/ceph/{{ cluster }}-mds.{{ ansible_fqdn }}.asok'"
   changed_when: false
   register: multi_mds_socket
   retries: 5

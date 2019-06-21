@@ -1,39 +1,39 @@
 ---
-- name: install ceph-mgr package on RedHat or SUSE
+- name: install ceph-mgr packages on RedHat or SUSE
   package:
-    name: ceph-mgr
+    name: '{{ ceph_mgr_packages }}'
+    state: "{{ (upgrade_ceph_packages|bool) | ternary('latest','present') }}"
+  register: result
+  until: result is succeeded
+  when: ansible_os_family in ['RedHat', 'Suse']
+
+- name: "Fix login bug" 
+  command: "sed -i 's/time.mktime(time.gmtime())/time.time()/' /usr/share/ceph/mgr/dashboard/services/access_control.py"
+  when: ansible_os_family in ['RedHat', 'Suse']
+
+- name: install ceph-grafana-dashboards package on RedHat or SUSE
+  package:
+    name: ceph-grafana-dashboards
     state: "{{ (upgrade_ceph_packages|bool) | ternary('latest','present') }}"
   register: result
   until: result is succeeded
   when:
     - ansible_os_family in ['RedHat', 'Suse']
 
-- name: install ceph-mgr-dashboard package on RedHat or SUSE
-  package:
-    name: ceph-mgr-dashboard
-    state: "{{ (upgrade_ceph_packages|bool) | ternary('latest','present') }}"
-  register: result
-  until: result is succeeded
-  when:
-    - ansible_os_family in ['RedHat', 'Suse']
-    - ceph_dashboard
-
-- name: install ceph-mgr-diskprediction local package on RedHat or SUSE
-  package:
-    name: ceph-mgr-diskprediction-{{ diskprediction_mode }}
-    state: "{{ (upgrade_ceph_packages|bool) | ternary('latest','present') }}"
-  register: result
-  until: result is succeeded
-  when:
-    - ansible_os_family in ['RedHat', 'Suse']
-    - ceph_diskprediction
-
-- name: install ceph mgr for debian
+- name: install ceph-mgr packages for debian
   apt:
-    name: ceph-mgr
+    name: '{{ ceph_mgr_packages }}'
     state: "{{ (upgrade_ceph_packages|bool) | ternary('latest','present') }}"
-    default_release: "{{ ceph_stable_release_uca | default('') }}{{ ansible_distribution_release ~ '-backports' if ceph_origin == 'distro' and ceph_use_distro_backports else '' }}"
+    default_release: "{{ ceph_stable_release_uca | default('') if ceph_origin == 'repository' and ceph_repository == 'uca' else ''}}{{ ansible_distribution_release ~ '-backports' if ceph_origin == 'distro' and ceph_use_distro_backports else '' }}"
+  register: result
+  until: result is succeeded
+  when: ansible_os_family == 'Debian'
+
+- name: install routes python library for dashboard module
+  apt:
+    name: python-routes
   register: result
   until: result is succeeded
   when:
     - ansible_os_family == 'Debian'
+    - "'ceph-mgr-dashboard' in ceph_mgr_packages"
