@@ -1,0 +1,7 @@
+---
+- targets:
+  - ceph1.45lab.com:9283
+  - ceph2.45lab.com:9283
+  - ceph3.45lab.com:9283
+  labels:
+    instance: ceph_cluster
