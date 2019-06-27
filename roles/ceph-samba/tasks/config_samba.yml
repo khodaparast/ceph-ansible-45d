@@ -67,5 +67,6 @@
 - name: config_samba | waiting for ctdb to restart
   wait_for:
     delay: 60  #we wait enough time for ctdb to startup samba services in order to continue
-    port: 445
+    host: "{{ ansible_default_ipv4.address }}"
+    port: 4379
   when: samba_ctdb_restarted.changed

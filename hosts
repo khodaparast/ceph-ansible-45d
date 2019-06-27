@@ -22,3 +22,7 @@ vrgw1 radosgw_address=192.168.18.53
 [smbs]
 vfsgw1
 vfsgw2
+
+[nfss]
+vnfs1
+vnfs2

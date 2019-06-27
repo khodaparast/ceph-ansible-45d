@@ -4,6 +4,9 @@ samba_file_gw: true
 samba_ad_member: true
 samba_cluster: true
 
+samba_keyring:
+  - { name: client.samba, caps: { mds: "allow r path=/, allow rwps path=/fsgw, allow rwps path=/ctdb", mon: "allow r", osd: "allow *" }, mode: "0600" }
+
 ctdb_backup_configs: true
 ctdb_cephfs_mount: '/mnt/cephfs'
 ctdb_cephfs_client_mount: '/mnt/cephfs/fsgw'  #Defines root mount for creating shares
@@ -43,7 +46,7 @@ ctdb_samba_global_options:
 pri_domain_name: '45lab.com'
 ctdb_samba_active_directory_info:
   domain_join_user: 'bk'
-  domain_join_password: ''
+  domain_join_password: 
   idmap_range: '10000-99999'
   kdc:
     - 'dc01.{{ pri_domain_name }}'

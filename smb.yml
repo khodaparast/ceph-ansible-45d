@@ -83,6 +83,8 @@
         name: ceph-facts
       tags: ['ceph_update_config']
     - import_role:
+        name: ceph-common
+    - import_role:
         name: ceph-samba
 
   post_tasks:
@@ -110,11 +112,11 @@
       command: ctdb status
       register: ctdb_status
       changed_when: false
-      delegate_to: "{{ groups[ctdb_group_name][0] }}"
+      delegate_to: "{{ groups[smb_group_name][0] }}"
       run_once: true
     - name: "show ctdb status for cluster {{ cluster }}"
       debug:
         msg: "{{ ctdb_status.stdout_lines }}"
-      delegate_to: "{{ groups[ctdb_group_name][0] }}"
+      delegate_to: "{{ groups[smb_group_name][0] }}"
       run_once: true
       when: not ctdb_status.failed

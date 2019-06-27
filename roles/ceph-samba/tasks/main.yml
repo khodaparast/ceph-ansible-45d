@@ -4,6 +4,7 @@
   when: ansible_os_family == "RedHat"
 
 - include: config_cephfs.yml
+  run_once: true
   when: config_ctdb | bool
 
 - include: config_ctdb.yml

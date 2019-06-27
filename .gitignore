@@ -3,7 +3,15 @@
 *.keyring
 fetch/*
 /vagrant_variables.yml
+group_vars/all
+group_vars/mons
+group_vars/osds
+group_vars/mdss
+group_vars/rgws
+group_vars/agent
+group_vars/*.yml
 *.DS_Store
+/*.yml
 *.pyc
 *.sw?
 .tox

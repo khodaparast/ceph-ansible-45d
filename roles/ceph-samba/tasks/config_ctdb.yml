@@ -26,7 +26,7 @@
   file:
     path: "{{ ctdb_lockfile }}"
     state: touch
-    wner: root
+    owner: root
     group: root
     mode: 0774
   when: ctdb_lockfile_check.stat.exists == False

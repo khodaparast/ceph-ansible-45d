@@ -10,6 +10,15 @@
       when:
         - samba_file_gw | bool
 
+    - name: install attr
+      package:
+        name: attr
+        state: "{{ (upgrade_ceph_packages|bool) | ternary('latest','present') }}"
+      register: result
+      until: result is succeeded
+      when:
+        - samba_file_gw | bool
+
     - name: install samba-winbind 
       package:
         name: samba-winbind

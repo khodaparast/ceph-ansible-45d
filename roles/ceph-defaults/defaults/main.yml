@@ -48,7 +48,7 @@ iscsi_gw_group_name: iscsigws
 mgr_group_name: mgrs
 rgwloadbalancer_group_name: rgwloadbalancers
 grafana_server_group_name: grafana-server
-ctdb_group_name: smbs
+smb_group_name: smbs
 
 # If configure_firewall is true, then ansible will try to configure the
 # appropriate firewalling rules so that Ceph daemons can communicate
@@ -66,6 +66,7 @@ ceph_rbdmirror_firewall_zone: public
 ceph_iscsi_firewall_zone: public
 ceph_dashboard_firewall_zone: public
 ceph_rgwloadbalancer_firewall_zone: public
+ceph_samba_firewall_zone: public
 
 # Generate local ceph.conf in fetch directory
 ceph_conf_local: false
@@ -697,6 +698,8 @@ dashboard_admin_password: admin
 # We only need this for SSL (https) connections
 dashboard_crt: ''
 dashboard_key: ''
+dashboard_nfs_enable: true
+dashboard_rgw_enable: true
 dashboard_rgw_api_user_id: ceph-dashboard
 dashboard_rgw_api_host: ''
 dashboard_rgw_api_port: ''

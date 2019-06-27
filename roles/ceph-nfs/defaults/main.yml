@@ -9,7 +9,7 @@
 # at their disposal, some people might want to have it
 # distributed on RGW nodes. Setting 'copy_admin_key' to 'true'
 # will copy the admin key to the /etc/ceph/ directory
-copy_admin_key: false
+copy_admin_key: true
 
 # Whether docker container or systemd service should be enabled
 # and started, it's useful to set it to false if nfs-ganesha
@@ -41,23 +41,30 @@ nfs_obj_gw: true
 ######################
 ceph_nfs_log_file: "/var/log/ganesha/ganesha.log"
 ceph_nfs_ceph_user: "admin"
+ceph_nfs_fs_root: "nfsroot"
+
+nfs_keyring:
+  - { name: client.nfs, caps: { mds: "allow r path=/, allow rwps path=/{{ ceph_nfs_fs_root }}", mon: "allow r", osd: "allow *" }, mode: "0600" }
+
 ceph_nfs_dynamic_exports: true
 # If set to true then rados is used to store ganesha exports
 # and client sessions information, this is useful if you
 # run multiple nfs-ganesha servers in active/passive mode and
 # want to do failover
-ceph_nfs_rados_driver: true
+ceph_nfs_rados_backend: true
 # backend mode, either rados_kv,rados_ng, or rados_cluster
 # Default (rados_ng) is for for single gateway/active-passive use. rados_kv is obseleted by rados_ng
 # rados_cluster is for active-active nfs cluster. Requires ganesha-grace-db to be initilaized
-ceph_nfs_rados_backend_driver: rados_cluster
+ceph_nfs_rados_backend_driver: "rados_cluster"
 
-# Name of the rados namespace used to store a list of the export rados
+# Name of the rados pool and namespace used to store a list of the export rados
 # object URLS
-ceph_nfs_rados_export_index: "ganesha-export-index"
-# Name of the rados namespace used to store a list of the grace rados
+ceph_nfs_export_pool: "{{ cephfs_metadata }}"
+ceph_nfs_export_namespace: "ganesha-export"
+# Name of the rados pool and namespace used to store a list of the grace rados
 # object URLS
-ceph_nfs_rados_grace: "ganesha-grace"
+ceph_nfs_grace_pool: "{{ cephfs_metadata }}"
+ceph_nfs_grace_namespace: "ganesha-grace"
 # Address ganesha service should listen on, by default ganesha listens on all
 # addresses. (Note: ganesha ignores this parameter in current version due to
 # this bug: https://github.com/nfs-ganesha/nfs-ganesha/issues/217)

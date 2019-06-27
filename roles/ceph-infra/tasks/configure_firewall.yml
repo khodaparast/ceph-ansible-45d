@@ -103,6 +103,19 @@
       - nfs_group_name in group_names
     tags: firewall
 
+  - name: open nfs ports (rpc-bind)
+    firewalld:
+      service: rpc-bind
+      zone: "{{ ceph_nfs_firewall_zone }}"
+      source: "{{ public_network }}"
+      permanent: true
+      immediate: true
+      state: enabled
+    when:
+      - nfs_group_name is defined
+      - nfs_group_name in group_names
+    tags: firewall
+
   - name: open nfs ports (portmapper)
     firewalld:
       port: "111/tcp"
@@ -214,5 +227,25 @@
       - rgwloadbalancer_group_name in group_names
     tags:
       - firewall
+
+  - block:
+      - name: open smb ports
+        firewalld:
+          service: "samba"
+          zone: "{{ ceph_samba_firewall_zone }}"
+          permanent: true
+          immediate: true
+          state: enabled
+
+      - name: open ctdb ports
+        firewalld:
+          service: "ctdb"
+          zone: "{{ ceph_samba_firewall_zone }}"
+          permanent: true
+          immediate: true
+          state: enabled
+    when:
+      - smb_group_name is defined
+      - smb_group_name in group_names
 
 - meta: flush_handlers

@@ -73,9 +73,9 @@
             group: "ceph"
             mode: "0600"
       when:
-        - nfs_obj_gw
+        - nfs_obj_gw | bool
   when:
-    - cephx
+    - cephx | bool
 
 - name: change ownership on /var/log/ganesha
   file:
