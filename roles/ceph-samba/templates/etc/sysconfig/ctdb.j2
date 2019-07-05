@@ -32,6 +32,8 @@ CTDB_MANAGES_WINBIND=yes
 # Default log level is ERR.  NOTICE is a little more verbose.
 # CTDB_DEBUGLEVEL=NOTICE
 
+CTDB_NOSETSCHED=yes
+
 {% if ctdb_tunables %}
 CTDB_SET_MonitorInterval=5
 CTDB_SET_TakeoverTimeout=5

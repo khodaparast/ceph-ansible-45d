@@ -25,7 +25,7 @@
   args:
     creates: /var/lib/ceph/mds/{{ cluster }}-{{ mds_name }}/keyring
   changed_when: false
-  when: cephx
+  when: cephx | bool
 
 - name: set mds key permissions
   file:
@@ -33,7 +33,7 @@
     owner: "ceph"
     group: "ceph"
     mode: "0600"
-  when: cephx
+  when: cephx | bool
 
 - name: ensure systemd service override directory exists
   file:

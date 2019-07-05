@@ -42,7 +42,7 @@
     - "{{ nfs_group_name|default('nfss') }}"
     - "{{ client_group_name|default('clients') }}"
     - "{{ mgr_group_name|default('mgrs') }}"
-    - grafana-server
+    - metrics
 
   become: true
 
@@ -61,7 +61,7 @@
     - "{{ client_group_name|default('clients') }}"
     - "{{ mgr_group_name|default('mgrs') }}"
     - agents
-    - grafana-server
+    - metrics
     - clients
     - iscsigws
     - iscsi-gws # for backward compatibility only!
@@ -103,7 +103,7 @@
 
 
 - name: purge ceph grafana-server
-  hosts: grafana-server
+  hosts: metrics
   become: true
   vars:
     grafana_services:
@@ -609,7 +609,7 @@
     - "{{ nfs_group_name|default('nfss') }}"
     - "{{ client_group_name|default('clients') }}"
     - "{{ mgr_group_name|default('mgrs') }}"
-    - grafana-server
+    - metrics
 
   gather_facts: false # Already gathered previously
 
