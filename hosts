@@ -1,28 +1,31 @@
 [mons]
-vmon1
-vmon2
-vmon3
+mon1
+mon2
+mon3
 
 [mgrs]
-vmon1
-vmon2
-vmon3
+mon1
+mon2
+mon3
 
 [osds]
-vosd1
-vosd2
-vosd3
+osd1
+osd2
+osd3
 
 [mdss]
-vmds1
+mds1
 
 [rgws]
-vrgw1 radosgw_address=192.168.18.53
+rgw1 radosgw_address=192.168.18.53
 
 [smbs]
-vfsgw1
-vfsgw2
+fsgw1
+fsgw2
 
 [nfss]
-vnfs1
-vnfs2
+nfs1
+nfs2
+
+[metrics]
+metric1

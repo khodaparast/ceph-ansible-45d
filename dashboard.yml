@@ -1,6 +1,6 @@
 ---
 - hosts:
-  - '{{ groups["grafana-server"][0] | default(groups["mgrs"][0]) | default(groups["mons"][0]) | default(omit) }}'
+  - '{{ groups["metrics"][0] | default(groups["mgrs"][0]) | default(groups["mons"][0]) | default(omit) }}'
 
   gather_facts: false
   any_errors_fatal: true
@@ -72,7 +72,7 @@
             name: ceph-node-exporter
       when: dashboard_enabled | bool
 
-- hosts: '{{ groups["grafana-server"][0] | default(groups["mgrs"][0]) | default(groups["mons"][0]) | default(omit) }}'
+- hosts: '{{ groups["metrics"][0] | default(groups["mgrs"][0]) | default(groups["mons"][0]) | default(omit) }}'
   become: true
   tasks:
     - block:
