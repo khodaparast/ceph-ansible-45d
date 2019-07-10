@@ -30,9 +30,9 @@ ctdb_public_addresses:
     cidr: '{{ ctdb_vip_cidr }}'
   # Multiple VIPs can be used 
   # Specify withoput varible for every VIP after the first one
-  #  - address: 192.168.101.28
-  #    bind_interface: eth1
-  #    cidr: 16
+#  - address: 192.168.101.28
+#      bind_interface: eth1
+#      cidr: 16
 # NODES
 ctdb_nodes_cluster_address_int: 'eth1'  #ensure the address associated with this interface is already configured (eth0|eth1|eth2|enp0s3|enp0s8|etc...)
 ctdb_nodes_file: '/etc/ctdb/nodes'

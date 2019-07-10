@@ -21,6 +21,15 @@ ctdb_vip_address: 192.168.18.56
 ctdb_vip_cidr: 16
 ctdb_vip_interface: 'eth0'
 
+# IF USING MULTIPLE VIP ADDRESSES UNCOMMENT
+#ctdb_public_addresses:
+#  - address: '{{ ctdb_vip_address }}'
+#    bind_interface: '{{ ctdb_vip_interface }}'
+#    cidr: '{{ ctdb_vip_cidr }}'
+#  - address: 192.168.101.28
+#    bind_interface: eth1
+#    cidr: 16
+
 # NODES
 #ctdb_nodes_cluster_address_int: 'eth1'
 

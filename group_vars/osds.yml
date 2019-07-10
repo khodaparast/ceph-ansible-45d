@@ -33,9 +33,9 @@ copy_admin_key: true
 # All scenario(except 3rd) inherit from the following device declaration
 # Note: This scenario uses the ceph-disk tool to provision OSDs
 
-devices:
-  - /dev/sdb
-  - /dev/sdk
+#devices:
+#  - /dev/sdb
+#  - /dev/sdk
 #  - /dev/sdd
 #  - /dev/sde
 
@@ -49,7 +49,7 @@ devices:
 # this option since ceph-disk has a built-in check which looks for empty devices.
 # Thus devices with existing partition tables will not be used.
 #
-osd_auto_discovery: false
+osd_auto_discovery: true
 
 # Encrypt your OSD device using dmcrypt
 # If set to True, no matter which osd_objecstore you use the data will be encrypted
@@ -141,7 +141,7 @@ device_crush_hdd_rule:
 
 device_crush_rules:
   - "{{ device_crush_hdd_rule }}"
-  - "{{ device_crush_ssd_rule }}"
+#  - "{{ device_crush_ssd_rule }}"
 
 ##########
 # DOCKER #

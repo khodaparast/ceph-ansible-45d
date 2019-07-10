@@ -286,7 +286,7 @@ cluster_network: 10.0.0.0/24
 #osd_mount_options_xfs: noatime,largeio,inode64,swalloc
 osd_objectstore: bluestore
 osd_scenario: lvm
-hybrid_cluster: true
+hybrid_cluster: false
 # Any device containing these patterns in their path will be excluded.
 osd_auto_discovery_exclude: "dm-*|loop*|md*"
 
@@ -451,7 +451,7 @@ radosgw_thread_pool_size: 512
 ceph_conf_overrides:
    global:
      mon_allow_pool_delete: true
-     rgw_enable_usage_log: true
+#     rgw_enable_usage_log: true
 
 
 #############

@@ -1,0 +1,4 @@
+---
+tools_git_repo: 'https://github.com/45Drives/tools.git'
+tools_install_dir: '/opt/ctools'
+chassis_size: '15'

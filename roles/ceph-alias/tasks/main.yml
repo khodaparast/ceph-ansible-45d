@@ -1,0 +1,26 @@
+---
+- name: create tools directory
+  file:
+    path: {{ tools_install_dir }}
+    state: directory
+
+- name: install ipmitool
+  package:
+    name: ipmitool
+    state: present
+
+- name: git clone drive id tools
+  git:
+    repo: {{ tools_git_repo }}
+    dest: {{ tools_install_dir }}
+    clone: yes
+
+- name: Install alias udev rules
+  command: sh {{ tools_install_dir }}/alias_setup.sh
+
+- name: Create drive alias'
+  command: sh {{ tools_install_dir }}/dmap -s {{ chassis_size }}
+
+- name: Display drive map
+  command: sh {{ tools_install_dir }}/lsdev
+      
