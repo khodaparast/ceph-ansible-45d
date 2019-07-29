@@ -6,20 +6,19 @@ HOME=$(pwd)
 ## DEPENDENCIES
 yum install -y -q -e 0 pyparsing python-kmod python-gobject python-urwid \
     python-rados python-rbd python-netaddr python-netifaces \
-    python-crypto python-requests python-flask pyOpenSSL git
-
-
+    python-crypto python-cryptography python-requests python-flask pyOpenSSL git 
 
 ## DOWNLOAD SOURCE PACKAGES
-git clone https://github.com/open-iscsi/tcmu-runner
+curl -LO https://github.com/open-iscsi/tcmu-runner/archive/v1.4.1.tar.gz
 git clone https://github.com/open-iscsi/rtslib-fb.git
 git clone https://github.com/open-iscsi/configshell-fb.git
 git clone https://github.com/open-iscsi/targetcli-fb.git
-git clone https://github.com/ceph/ceph-iscsi.git
+curl -LO https://github.com/ceph/ceph-iscsi/archive/3.2.tar.gz
 
 ## TCMU-RUNNER
 cd $HOME
-cd tcmu-runner
+tar -zxvf v1.4.1.tar.gz
+cd tcmu-runner-1.4.1
 sed -e '/glusterfs-api/ s/^#*/#/' -i extra/install_dep.sh
 sh extra/install_dep.sh
 cmake -Dwith-glfs=false -Dwith-qcow=false -DSUPPORT_SYSTEMD=ON -DCMAKE_INSTALL_PREFIX=/usr
@@ -50,12 +49,11 @@ mkdir /var/target
 
 ## ceph-iscsi
 cd $HOME
-cd ceph-iscsi
+tar -zxvf 3.2.tar.gz
+cd ceph-iscsi-3.2
 python setup.py install --record uninstall.txt
 cp usr/lib/systemd/system/rbd-target-gw.service /lib/systemd/system
 cp usr/lib/systemd/system/rbd-target-api.service /lib/systemd/system
-
-
 
 cat << EOF > /etc/ceph/iscsi-gateway.cfg
 [config]
@@ -66,7 +64,7 @@ cluster_name = ceph
 
 # Place a copy of the ceph cluster's admin keyring in the gateway's /etc/ceph
 # drectory and reference the filename here
-gateway_keyring = ceph.client.admin.keyring
+#gateway_keyring = ceph.client.admin.keyring
 
 # API settings.
 # The API supports a number of options that allow you to tailor it to your
@@ -80,10 +78,10 @@ gateway_keyring = ceph.client.admin.keyring
 api_secure = false
 
 # Additional API configuration options are as follows, defaults shown.
-# api_user = admin
-# api_password = admin
-# api_port = 5001
-# trusted_ip_list = 192.168.0.10,192.168.0.11
+api_user = admin
+api_password = admin
+api_port = 5000
+trusted_ip_list = 192.168.101.1,192.168.101.3,192.168.101.7
 EOF
 
 systemctl daemon-reload

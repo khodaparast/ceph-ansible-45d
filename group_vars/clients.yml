@@ -57,3 +57,17 @@ copy_admin_key: true
 #  - { name: client.test, caps: { mon: "allow r", osd: "allow class-read object_prefix rbd_children, allow rwx pool=test" },  mode: "{{ ceph_keyring_permissions }}" }
 #  - { name: client.test2, caps: { mon: "allow r", osd: "allow class-read object_prefix rbd_children, allow rwx pool=test2" },  mode: "{{ ceph_keyring_permissions }}" }
 
+## MOUNT OPTIONS
+mount_cephfs_on_clients: false
+## It is best to set these in a hots_vars/ for each client host. But if the varible are the same for each client you can set here
+local_mountpoint_on_client: /mnt/cephfs
+# when setting cephfs_mountpoint_on_client an empty variable i.e "" will indicate the root of the cephfs
+# To specify a subdir use "test1" or nested subdirs "test1/subdir1"
+# Never specify the leading slash !
+cephfs_mountpoint_on_client: ""
+cephx_user_on_client: admin
+local_user_on_client: root
+local_group_on_client: root
+
+cephfs_keyring:
+  - { name: client.cephfs, caps: { mds: "allow rwps path=/", mon: "allow r", osd: "allow *" }, mode: "0600" }

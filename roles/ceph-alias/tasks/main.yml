@@ -21,6 +21,4 @@
 - name: Create drive alias'
   command: sh {{ tools_install_dir }}/dmap -s {{ chassis_size }}
 
-- name: Display drive map
-  command: sh {{ tools_install_dir }}/lsdev
       

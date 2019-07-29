@@ -58,11 +58,6 @@
     - import_role:
         name: ceph-infra
 
-- hosts: osds
-  tasks:
-    - import_role:
-        name: ceph-alias
-
 - hosts: mons
   gather_facts: false
   become: True
