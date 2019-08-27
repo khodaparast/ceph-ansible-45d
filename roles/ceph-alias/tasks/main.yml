@@ -1,7 +1,7 @@
 ---
 - name: create tools directory
   file:
-    path: {{ tools_install_dir }}
+    path: "{{ tools_install_dir }}"
     state: directory
 
 - name: install ipmitool
@@ -11,14 +11,22 @@
 
 - name: git clone drive id tools
   git:
-    repo: {{ tools_git_repo }}
-    dest: {{ tools_install_dir }}
+    repo: "{{ tools_git_repo }}"
+    dest: "{{ tools_install_dir }}"
     clone: yes
 
 - name: Install alias udev rules
-  command: sh {{ tools_install_dir }}/alias_setup.sh
+  command: sh "{{ tools_install_dir }}"/alias_setup.sh
 
 - name: Create drive alias'
-  command: sh {{ tools_install_dir }}/dmap -s {{ chassis_size }}
+  command: sh "{{ tools_install_dir }}"/dmap -s "{{ chassis_size }}"
 
-      
+- name: Get drive layout
+  command: sh "{{ tools_install_dir }}"/lsdev -n
+  register: drive_layout
+  changed_when: false
+
+- name: Show drive layout
+  debug:
+    msg: "{{ drive_layout.stdout_lines }}"
+  when: not drive_layout.failed

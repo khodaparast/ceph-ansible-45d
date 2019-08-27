@@ -4,9 +4,17 @@
 #  with_items: "{{ device_crush_hdd_rule }}"
 #  changed_when: false
 
-- name: create configured crush rules
+- name: create configured HDD crush rules when not hybrid cluster
+  command: "{{ container_exec_cmd }} ceph --cluster {{ cluster }} osd crush rule create-replicated {{ device_crush_hdd_rule.name }} {{ device_crush_hdd_rule.root }} {{ device_crush_hdd_rule.type }} {{ device_crush_hdd_rule.device }}"
+  when:
+    - not hybrid_cluster | bool
+  changed_when: false
+
+- name: create configured HDD/SSD crush rules when hybrid cluster
   command: "{{ container_exec_cmd }} ceph --cluster {{ cluster }} osd crush rule create-replicated {{ item.name }} {{ item.root }} {{ item.type }} {{ item.device }}"
   with_items: "{{ device_crush_rules | unique }}"
+  when:
+    - hybrid_cluster | bool
   changed_when: false
 
 #- name: create ssd replicated crush rule
