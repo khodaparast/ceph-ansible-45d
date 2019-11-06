@@ -7,17 +7,6 @@
   notify:
     - restart ctdb
 
-#- name: config_samba | checking if /etc/samba/smb.conf is a symlink
-#  stat:
-#    path: "/etc/samba/smb.conf"
-#  register: smb_symlink
-
-#- name: config_samba | removing /etc/samba/smb.conf if a symlink
-#  file:
-#    path: "/etc/samba/smb.conf"
-#    state: absent
-#  when: smb_symlink.stat.islnk
-
 - name: config_samba | configuring samba {{ ctdb_samba_config }}
   template:
     src: "etc/samba/smb.conf.j2"
@@ -27,17 +16,6 @@
     mode: 0644
     backup: "{{ ctdb_backup_configs }}"
   register: "samba_reconfigured"
-#  notify:
-#    - restart ctdb
-#    - reload samba
-
-#- name: config_samba | creating samba link /etc/samba/smb.conf -> {{ ctdb_samba_config }}
-#  file:
-#    src: "{{ ctdb_samba_config }}"
-#    dest: "/etc/samba/smb.conf"
-#    owner: root
-#    group: root
-#    state: link
 
 - name: config_samba | configuring nssswitch
   template:

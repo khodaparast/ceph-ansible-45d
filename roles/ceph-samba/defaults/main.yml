@@ -10,6 +10,11 @@ samba_keyring:
 ctdb_backup_configs: true
 ctdb_cephfs_mount: '/mnt/cephfs'
 ctdb_cephfs_client_mount: '/mnt/cephfs/fsgw'  #Defines root mount for creating shares
+
+# When using CephFS as shared storage, CTDB locking is best stored as a rados object rather than a file on the cephfs
+# Only set this to false if not using cephfs as shared FS
+ctdb_rados_locking: true
+# These two varibles are here for legacy and non CephFS deployments
 ctdb_lock_directory: '{{ ctdb_cephfs_mount }}/ctdb' # LEAVE THIS DEFAULT
 ctdb_lockfile: '{{ ctdb_lock_directory }}/.ctdb-lockfile' # LEAVE THIS DEFAULT
 
@@ -43,7 +48,7 @@ ctdb_samba_join_domain: false
 ctdb_samba_global_options:
   clustering: 'yes'  #defines if CTDB clustering is used...(yes|no)
   dns_proxy: 'no'
-  deadtime: '0'  #defines idle disconnects..(default 0)...A deadtime of zero indicates that no auto-disconnection should be performed
+  deadtime: '2'  #defines idle disconnects..(default 0)...A deadtime of zero indicates that no auto-disconnection should be performed
   idmap_range: '100000-299999'
   max_log_size: '1000'
   netbios_name: 'SMBCLUSTER' #VIP DNS NAME

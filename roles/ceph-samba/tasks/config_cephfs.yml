@@ -34,10 +34,12 @@
     path: "{{ ctdb_cephfs_mount }}/root/ctdb"
     state: directory
     mode: 0755
+  when: not ctdb_rados_locking | bool
 
 - name: config_cephfs | Set quota on CTDB dir
   command: "setfattr -n ceph.quota.max_bytes -v 1074000000 {{ ctdb_cephfs_mount }}/root/ctdb"
   changed_when: false
+  when: not ctdb_rados_locking | bool
 
 - name: config_cephfs | Unmount cephfs as admin user 
   mount:
@@ -79,5 +81,6 @@
     fstype: "ceph"
     opts: "name=samba,secret={{ cephfs_samba_secret }},_netdev,noatime"
     state: mounted
+  when: not ctdb_rados_locking | bool
 
 
