@@ -143,7 +143,7 @@ device_crush_hdd_rule:
 
 device_crush_rules:
   - "{{ device_crush_hdd_rule }}"
-#  - "{{ device_crush_ssd_rule }}"
+  - "{{ device_crush_ssd_rule }}"
 
 ##########
 # DOCKER #

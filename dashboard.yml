@@ -93,6 +93,14 @@
             name: ceph-prometheus
         - import_role:
             name: ceph-grafana
+        - name: install ceph-grafana-dashboards package on RedHat or SUSE
+          package:
+            name: ceph-grafana-dashboards
+            state: "{{ (upgrade_ceph_packages|bool) | ternary('latest','present') }}"
+          register: result
+          until: result is succeeded
+          when:
+            - ansible_os_family in ['RedHat', 'Suse']
         - import_role:
             name: ceph-dashboard
       when: dashboard_enabled | bool

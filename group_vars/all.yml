@@ -623,7 +623,7 @@ dashboard_rgw_enable: true
 ceph_nfs_export_pool: "{{ cephfs_metadata }}"
 ceph_nfs_export_namespace: "ganesha-export"
 dashboard_rgw_api_user_id: ceph-dashboard
-dashboard_rgw_api_host: '{{ groups[rgw_group_name][0] }}'
+dashboard_rgw_api_host: vrgw1
 dashboard_rgw_api_port: '8080'
 dashboard_rgw_api_scheme: 'http'
 dashboard_rgw_api_admin_resource: ''
