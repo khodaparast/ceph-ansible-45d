@@ -13,3 +13,13 @@ upgrade_samba_packages: true
 samba_server: true
 samba_cluster: true
 domain_member: true
+
+# Samba Server (SMB) Settings
+
+# Samba Cluster (CTDB) Settings
+
+# Domain Authentication (Winbind) Settings
+
+# Share (SMB) Definitions
+
+# Config Overrides

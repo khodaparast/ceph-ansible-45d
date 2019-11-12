@@ -1,7 +1,5 @@
 ---
 # tasks file for ansible-ctdb
-- include: install_redhat_samba_45drives.yml
-  when: '"45drives" in samba_repo'
-
-- include: install_redhat_samba_community.yml
-  when: '"community" in samba_repo'
+- include: install_redhat_samba.yml
+  tags:
+  - packages
