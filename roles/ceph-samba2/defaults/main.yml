@@ -14,9 +14,18 @@ samba_server: true
 samba_cluster: true
 domain_member: true
 
-# Samba Server (SMB) Settings
+# Which backend_fs to use. Currently only cephfs supported
+backend_fs: cephfs
 
-# Samba Cluster (CTDB) Settings
+## Cephfs Options
+samba_keyring:
+  - { name: client.samba, caps: { mds: "allow r path=/, allow rwps path=/fsgw", mon: "allow r", osd: "allow *" }, mode: "0600" }
+
+## Samba Server (SMB) Settings
+
+## Samba Cluster (CTDB) Settings
+
+shared_storage_mountpoint: /mnt/cephfs
 
 # Domain Authentication (Winbind) Settings
 

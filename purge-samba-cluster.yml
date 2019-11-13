@@ -25,11 +25,29 @@
   - name: exit playbook, if user did not mean to purge cluster
     fail:
       msg: >
-        "Exiting purge-cluster playbook, cluster was NOT purged.
+        "Exiting purge-samba playbook, cluster was NOT purged.
          To purge the cluster, either say 'yes' on the prompt or
          or use `-e ireallymeanit=yes` on the command line when
          invoking the playbook"
     when: ireallymeanit != 'yes'
+
+- name: cleanup cephfs mounts on samba gateways
+  hosts:
+    - smbs
+
+  gather_facts: false # Already gathered previously
+  become: true
+  
+  tasks:
+  - name: umount cephfs mounts on samba gateway
+    mount:
+      name: "/mnt/cephfs/fsgw"
+      state: absent
+
+  - name: remove samba cephfs secret key
+    file:
+      path: /etc/ceph/samba.secret
+      state: absent
 
 - name: final cleanup - purge samba packages and purge config
   vars:
@@ -59,6 +77,8 @@
     with_items:
       - /etc/samba
       - /etc/ctdb
+    when:
+      purge_config | bool
 
   - name: remove logs
     file:
