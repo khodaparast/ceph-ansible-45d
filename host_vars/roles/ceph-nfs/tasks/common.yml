@@ -1,0 +1,19 @@
+---
+- name: check if rgw bootstrap keyring exists
+  stat:
+    path: "/var/lib/ceph/bootstrap-rgw/{{ cluster }}.keyring"
+  register: stat_result
+
+- name: copy ceph keyring(s) if needed
+  copy:
+    src: "{{ fetch_directory }}/{{ fsid }}/{{ item.name }}"
+    dest: "{{ item.name }}"
+    owner: "{{ ceph_uid if containerized_deployment else 'ceph' }}"
+    group: "{{ ceph_uid if containerized_deployment else 'ceph' }}"
+    mode: "{{ ceph_keyring_permissions }}"
+  with_items:
+    - { name: "/var/lib/ceph/bootstrap-rgw/{{ cluster }}.keyring", copy_key: "{{ stat_result.stat.exists }}" }
+    - { name: "/etc/ceph/{{ cluster }}.client.admin.keyring", copy_key: "{{ copy_admin_key }}" }
+  when:
+    - cephx|bool
+    - item.copy_key|bool

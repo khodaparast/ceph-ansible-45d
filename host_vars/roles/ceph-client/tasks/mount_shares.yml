@@ -1,0 +1,26 @@
+---
+- name: include create_local_mountpoint
+  include_tasks: create_local_mountpoint.yml
+
+- name: include create_cephfs_user
+  include_tasks: create_cephfs_user.yml
+
+- name: mount_shares | Get user secret
+  command: "{{ container_exec_cmd }} ceph auth get-key client.{{ cephx_user_on_client }}"
+  register: command_output_cephfs_client
+  delegate_to: "{{ groups[mon_group_name][0] }}"
+  changed_when: false
+
+- name: mount_shares | Set cephfs user secret fact
+  set_fact:
+    cephfs_user_secret: "{{ command_output_cephfs_client.stdout }}"
+
+- name: mount_shares | mount cephfs on client system
+  mount:
+    name: "{{ local_mountpoint_on_client }}"
+    src: "{{ groups[mon_group_name][0] }}:6789:/{{ cephfs_mountpoint_on_client }}"
+    fstype: "ceph"
+    opts: "name={{ cephx_user_on_client }},secret={{ cephfs_user_secret }},_netdev,noatime"
+    state: mounted
+
+

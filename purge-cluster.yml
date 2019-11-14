@@ -435,6 +435,8 @@
     failed_when: false
     register: ceph_volume_present
 
+
+
   - name: resolve device link(s)
     command: readlink -f {{ item.data }}
     changed_when: false

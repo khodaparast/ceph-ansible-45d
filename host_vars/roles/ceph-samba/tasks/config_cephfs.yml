@@ -1,0 +1,86 @@
+---
+- name: config_cephfs | Get admin secret
+  command: "{{ container_exec_cmd }} ceph auth get-key client.admin"
+  register: command_output_admin
+  delegate_to: "{{ groups[mon_group_name][0] }}"
+  changed_when: false
+
+- name: config_cephfs | Set admin secret fact
+  set_fact:
+    cephfs_admin_secret: "{{ command_output_admin.stdout }}"
+
+- name: config_cephfs | Ensure cephfs dir exists
+  file:
+    path: "{{ ctdb_cephfs_mount }}/root"
+    state: directory
+    mode: 0755
+
+- name: config_cephfs | Mount cephfs as admin user 
+  mount:
+    name: "{{ ctdb_cephfs_mount }}/root"
+    src: "{{ groups[mon_group_name][0] }}:6789:/"
+    fstype: "ceph"
+    opts: "name=admin,secret={{ cephfs_admin_secret }},_netdev,noatime"
+    state: mounted
+
+- name: config_cephfs | Create directory for data
+  file:
+    path: "{{ ctdb_cephfs_mount }}/root/fsgw"
+    state: directory
+    mode: 0755
+
+- name: config_cephfs | Create directory for ctdb locking
+  file:
+    path: "{{ ctdb_cephfs_mount }}/root/ctdb"
+    state: directory
+    mode: 0755
+  when: not ctdb_rados_locking | bool
+
+- name: config_cephfs | Set quota on CTDB dir
+  command: "setfattr -n ceph.quota.max_bytes -v 1074000000 {{ ctdb_cephfs_mount }}/root/ctdb"
+  changed_when: false
+  when: not ctdb_rados_locking | bool
+
+- name: config_cephfs | Unmount cephfs as admin user 
+  mount:
+    name: "{{ ctdb_cephfs_mount }}/root"
+    state: absent 
+
+- name: config_cephfs | Create samba cephx user
+  ceph_key:
+    name: "{{ item.name }}"
+    state: present
+    caps: "{{ item.caps }}"
+    cluster: "{{ cluster }}"
+    secret: "{{ item.key | default('') }}"
+  with_items: "{{ samba_keyring }}"
+  delegate_to: "{{ groups[mon_group_name][0] }}"
+
+- name: config_cephfs | Get samba secret
+  command: "{{ container_exec_cmd }} ceph auth get-key client.samba"
+  register: command_output_samba
+  delegate_to: "{{ groups[mon_group_name][0] }}"
+  changed_when: false
+
+- name: config_cephfs | Set samba secret fact
+  set_fact:
+    cephfs_samba_secret: "{{ command_output_samba.stdout }}"
+
+- name: config_cephfs | mount {{ ctdb_cephfs_mount}}/fsgw
+  mount:
+    name: "{{ ctdb_cephfs_mount }}/fsgw"
+    src: "{{ groups[mon_group_name][0] }}:6789:/fsgw"
+    fstype: "ceph"
+    opts: "name=samba,secret={{ cephfs_samba_secret }},_netdev,noatime"
+    state: mounted
+
+- name: config_cephfs | mount {{ ctdb_cephfs_mount}}/ctdb
+  mount:
+    name: "{{ ctdb_cephfs_mount }}/ctdb"
+    src: "{{ groups[mon_group_name][0] }}:6789:/ctdb"
+    fstype: "ceph"
+    opts: "name=samba,secret={{ cephfs_samba_secret }},_netdev,noatime"
+    state: mounted
+  when: not ctdb_rados_locking | bool
+
+

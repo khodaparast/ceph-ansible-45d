@@ -1,0 +1,47 @@
+---
+- name: copy admin key
+  copy:
+    src: "{{ fetch_directory }}/{{ fsid }}/etc/ceph/{{ cluster }}.client.admin.keyring"
+    dest: "/etc/ceph/{{ cluster }}.client.admin.keyring"
+    owner: "root"
+    group: "root"
+    mode: "{{ ceph_keyring_permissions }}"
+  when: cephx | bool
+
+- name: deploy gateway settings, used by the ceph_iscsi_config modules
+  config_template:
+    src: "{{ role_path }}/templates/iscsi-gateway.cfg.j2"
+    dest: /etc/ceph/iscsi-gateway.cfg
+    config_type: ini
+    config_overrides: '{{ iscsi_conf_overrides }}'
+
+- name: set_fact container_exec_cmd
+  set_fact:
+    container_exec_cmd: "{{ container_binary }} exec ceph-mon-{{ hostvars[groups[mon_group_name][0]]['ansible_hostname'] }}"
+  delegate_to: "{{ groups[mon_group_name][0] }}"
+  when: containerized_deployment | bool
+
+- name: check if a rbd pool exists
+  command: "{{ container_exec_cmd | default('') }} ceph --cluster {{ cluster }} osd pool ls --format json"
+  changed_when: false
+  register: iscsi_pool_exists
+  delegate_to: "{{ groups[mon_group_name][0] }}"
+
+- name: iscsi pool related tasks
+  when: "iscsi_pool_name not in (iscsi_pool_exists.stdout | from_json)"
+  block:
+    - name: create a iscsi pool if it doesn't exist
+      command: "{{ container_exec_cmd | default('') }} ceph --cluster {{ cluster }} osd pool create {{ iscsi_pool_name }} {{ osd_pool_default_pg_num }}"
+      changed_when: false
+      delegate_to: "{{ groups[mon_group_name][0] }}"
+
+    - name: assign application rbd to iscsi pool
+      command: "{{ container_exec_cmd }} ceph --connect-timeout 5 --cluster {{ cluster }} osd pool application enable {{ iscsi_pool_name }} rbd"
+      delegate_to: "{{ groups[mon_group_name][0] }}"
+      run_once: True
+
+    - name: customize pool size
+      command: "{{ container_exec_cmd | default('') }} ceph --cluster {{ cluster }} osd pool set {{ iscsi_pool_name }} size {{ iscsi_pool_size | default(osd_pool_default_size) }}"
+      delegate_to: "{{ groups[mon_group_name][0] }}"
+      changed_when: false
+      when: iscsi_pool_size | default(osd_pool_default_size) != ceph_osd_pool_default_size

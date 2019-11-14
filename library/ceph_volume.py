@@ -226,7 +226,7 @@ def exec_command(module, cmd):
     Execute command
     '''
 
-    rc, out, err = module.run_command(cmd)
+    rc, out, err = module.run_command(cmd, use_unsafe_shell=True)
     return rc, cmd, out, err
 
 

@@ -51,7 +51,7 @@ copy_admin_key: true
 #
 osd_auto_discovery: true
 
-#chassis_size: 60
+chassis_size: 15
 
 # Encrypt your OSD device using dmcrypt
 # If set to True, no matter which osd_objecstore you use the data will be encrypted
@@ -120,10 +120,10 @@ lvm_volumes:
 #  - data: /dev/1-9
 #  - data: /dev/1-10
   - data: /dev/1-11
-#  - data: /dev/1-12
-#  - data: /dev/1-13
-#  - data: /dev/1-14
-#  - data: /dev/1-15
+  - data: /dev/1-12
+  - data: /dev/1-13
+  - data: /dev/1-14
+  - data: /dev/1-15
 #crush_device_class: ""
 #osds_per_device: 1
 

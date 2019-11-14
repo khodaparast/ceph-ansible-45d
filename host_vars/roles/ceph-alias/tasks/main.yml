@@ -1,0 +1,39 @@
+---
+- name: create tools directory
+  file:
+    path: "{{ tools_install_dir }}"
+    state: directory
+
+- name: install ipmitool
+  package:
+    name: ipmitool
+    state: present
+
+- name: git clone drive id tools
+  git:
+    repo: "{{ tools_git_repo }}"
+    dest: "{{ tools_install_dir }}"
+    clone: yes
+
+- name: Install alias udev rules
+  command: sh "{{ tools_install_dir }}"/alias_setup.sh
+
+- name: Create drive alias' for standard chassis
+  command: sh "{{ tools_install_dir }}"/dmap -s "{{ chassis_size }}"
+  when: not hybrid_chassis | bool
+
+- name: Create drive alias' for hybrid chassis
+  command: sh "{{ tools_install_dir }}"/hmap -s "{{ chassis_size }}"
+  when: hybrid_chassis | bool
+
+- name: Get drive layout
+  command: sh "{{ tools_install_dir }}"/lsdev -n
+  register: drive_layout
+  changed_when: false
+  when: not hybrid_chassis | bool
+
+- name: Show drive layout
+  debug:
+    msg: "{{ drive_layout.stdout_lines }}"
+  when: not drive_layout.failed
+  when: not hybrid_chassis | bool
