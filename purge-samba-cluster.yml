@@ -54,6 +54,7 @@
     samba_packages:
       - samba*
       - ctdb*
+      - attr
       - pam_krb5
       - libsmbclient
       - libwbclient
@@ -77,8 +78,7 @@
     with_items:
       - /etc/samba
       - /etc/ctdb
-    when:
-      purge_config | bool
+      - /etc/krb5.conf
 
   - name: remove logs
     file:

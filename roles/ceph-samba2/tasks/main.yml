@@ -11,9 +11,9 @@
 # Configure samba + winbind
 - include: configure_samba.yml
   when:
-    - samba_server == 'true'
+    - samba_server | bool
 
 # Configure CTDB
-- include: configure_ctdb.yml
-  when:
-    - samba_cluster == 'true'
+#- include: configure_ctdb.yml
+#  when:
+#    - samba_cluster == 'true'
