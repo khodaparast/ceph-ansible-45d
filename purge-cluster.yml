@@ -455,7 +455,7 @@
       - lvm_volumes | default([]) | length > 0
       - ceph_volume_present.rc == 0
 
-  - name: zap and destroy osds created by ceph-volume with lvm_volumes
+  - name: zap and destroy aliasd osds created by ceph-volume with lvm_volumes
     ceph_volume:
       data: "{{ item }}"
       action: "zap"

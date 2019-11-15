@@ -17,3 +17,18 @@
 - include: configure_ctdb.yml
   when:
     - samba_cluster | bool
+
+# Join Active Directory
+- include: join_domain_standalone.yml
+  when:
+    - domain_member | bool
+    - not samba_cluster | bool
+
+- include: join_domain_cluster.yml
+  tags:
+  - join_domain
+  when:
+    - domain_member | bool
+    - samba_cluster | bool
+  
+- include: start_services.yml

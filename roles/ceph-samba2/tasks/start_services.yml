@@ -1,0 +1,49 @@
+---
+- name: start_services | Standalone
+  block:
+    - name: start_services | disable samba
+      systemd:
+        name: smb
+        state: start
+        enabled: yes
+      when:
+        - samba_server | bool
+
+    - name: start_services | disable winbind
+      systemd:
+        name: winbind
+        state: start
+      enabled: yes
+      hen:
+        - domain_member | bool
+  when:
+      - not samba_cluster | bool
+
+- name: start_services | Clustered
+  block:
+    - name: start_services | disable samba
+      systemd:
+        name: smb
+        state: start
+        enabled: no
+      when:
+        - samba_server | bool
+
+    - name: start_services | enable ctdb control of samba
+      file:
+        src: '/usr/share/ctdb/events/legacy/{{ item.src }}'
+        dest: /etc/ctdb/events/legacy/
+        state: link
+      with_items:
+        - 50.samba.script
+      when:
+        - samba_server | bool
+    
+    - name: start_services | enable start ctdb
+      systemd:
+        name: ctdb
+        state: start
+        enabled: yes
+  when:
+      - samba_cluster | bool
+      - not domain_member | bool

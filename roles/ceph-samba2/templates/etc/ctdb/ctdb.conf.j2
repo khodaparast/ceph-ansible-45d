@@ -1,0 +1,13 @@
+{% if backend_fs == 'cephfs' %}
+[legacy]
+    #realtime scheduling = true will cause ctdb to fail when docker containers are running
+    realtime scheduling = false
+{% endif %}
+
+[cluster]
+{% if rados_locking %}
+    recovery lock = !/usr/libexec/ctdb/ctdb_mutex_ceph_rados_helper {{ cluster }} client.admin {{ cephfs_metadata }} lockctdb
+{% else %}
+    recovery lock = {{ shared_storage_mountpoint }}/ctdb/.lockctdb
+{% endif %}
+

@@ -38,7 +38,10 @@ active_directory_info:
   winbind_enum_groups: yes
   winbind_enum_users: yes
   winbind_use_default_domain: yes
-
+  domain_join_user: ''
+  # Use ansible vault to create encrypted varible "domain_password"
+  domain_join_password: '{{ domain_password }}'
+  
 windows_acl: true
 
 # Share (SMB) Definitions
@@ -52,6 +55,8 @@ ctdb_public_addresses:
   - address: '192.168.103.11'
     vip_interface: 'eth1'
     subnet_mask: '16'
+
+rados_locking: true
 
 # Config Overrides
 #samba_global_overrides:

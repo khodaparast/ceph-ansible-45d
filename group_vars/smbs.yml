@@ -49,7 +49,7 @@ ctdb_public_addresses:
   - vip_address: '192.168.103.10'
     vip_interface: 'eth1'
     subnet_mask: '16'
-  - address: '192.168.103.11'
+  - vip_address: '192.168.103.11'
     vip_interface: 'eth1'
     subnet_mask: '16'
 
