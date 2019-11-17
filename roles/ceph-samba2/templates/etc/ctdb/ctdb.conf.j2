@@ -6,7 +6,7 @@
 
 [cluster]
 {% if rados_locking %}
-    recovery lock = !/usr/libexec/ctdb/ctdb_mutex_ceph_rados_helper {{ cluster }} client.admin {{ cephfs_metadata }} lockctdb
+    recovery lock = !/usr/libexec/ctdb/ctdb_mutex_ceph_rados_helper {{ cluster }} client.samba {{ cephfs_metadata }} lockctdb
 {% else %}
     recovery lock = {{ shared_storage_mountpoint }}/ctdb/.lockctdb
 {% endif %}

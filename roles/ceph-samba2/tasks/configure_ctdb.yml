@@ -31,18 +31,56 @@
     group: root
     mode: 0644
 
-- name: config_ctdb | create ctdb volatile directory
+- name: config_ctdb | ensure ctdb volatile directory exists
   file:
       path: /var/lib/ctdb/volatile
       state: directory
       mode: '0755'
 
+- name: config_ctdb | ensure ctdb persistent directory exists
+  file:
+      path: /var/lib/ctdb/persistent
+      state: directory
+      mode: '0755'
+
+- name: config_ctdb | ensure ctdb state directory exists
+  file:
+      path: /var/lib/ctdb/state
+      state: directory
+      mode: '0755'
+
+- name: config_ctdb | create ctdb event legacy directory
+  file:
+      path: /etc/ctdb/events/legacy/
+      state: directory
+      mode: '0755'
+
 - name: config_ctdb | link core ctdb event scripts
   file:
-    src: '/usr/share/ctdb/events/legacy/{{ item.src }}'
-    dest: /etc/ctdb/events/legacy/
+    src: /usr/share/ctdb/events/legacy/{{ item }}
+    dest: /etc/ctdb/events/legacy/{{ item }}
     state: link
   with_items:
     - 00.ctdb.script
     - 10.interface.script
+
+- name: config_samba | link samba ctdb event scripts
+  file:
+    src: /usr/share/ctdb/events/legacy/{{ item }}
+    dest: /etc/ctdb/events/legacy/{{ item }}
+    state: link
+  with_items:
+    - 50.samba.script
+  when:
+    - samba_server | bool
+
+- name: config_ctdb | link winbind ctdb event scripts
+  file:
+    src: /usr/share/ctdb/events/legacy/{{ item }}
+    dest: /etc/ctdb/events/legacy/{{ item }}
+    state: link
+  with_items:
+    - 49.winbind.script
+  when:
+    - domain_member | bool
 

@@ -44,7 +44,7 @@
   with_items: "{{ samba_keyring }}"
   delegate_to: "{{ groups[mon_group_name][0] }}"
 
-- name: configure_cephfs_backend | Get samba secret
+- name: configure_cephfs_backend | Get samba secret for cephfs mount
   command: "ceph auth get-key client.samba"
   register: command_output_samba
   delegate_to: "{{ groups[mon_group_name][0] }}"
@@ -54,7 +54,22 @@
   set_fact:
     cephfs_samba_secret: "{{ command_output_samba.stdout }}"
 
-- name: configure_cephfs_backend | write ceph samba client key 
+- name: configure_cephfs_backend | Get samba keyring for rados locking
+  command: "ceph auth get client.samba"
+  register: samba_keyring
+  delegate_to: "{{ groups[mon_group_name][0] }}"
+  changed_when: false
+
+- name: configure_cephfs_backend | Write samba keyring for rados locking
+  copy:
+    content: "{{ samba_keyring.stdout }}"
+    dest: "/etc/ceph/{{cluster}}.client.samba.keyring"
+    force: yes
+    group: ceph
+    owner: ceph
+    mode: 0600
+
+- name: configure_cephfs_backend | write ceph samba client secret
   copy:
     content: "{{ cephfs_samba_secret }}"
     dest: /etc/ceph/samba.secret
