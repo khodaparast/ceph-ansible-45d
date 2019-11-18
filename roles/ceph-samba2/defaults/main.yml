@@ -28,7 +28,7 @@ samba_global_options:
   netbios_name: 'SMBCLUSTER'
   server_string: 'Samba %v'
   idmap_range: '10000-99999'
-  log_level: '3'
+  log_level: '0'
 
 # Domain Authentication (Winbind) Settings
 # Todo add support for choice of sssd or winbind
