@@ -53,6 +53,8 @@ osd_auto_discovery: true
 
 chassis_size: 15
 
+hybrid_chassis: false
+
 # Encrypt your OSD device using dmcrypt
 # If set to True, no matter which osd_objecstore you use the data will be encrypted
 #dmcrypt: False
