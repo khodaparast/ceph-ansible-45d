@@ -5,16 +5,22 @@
   - packages
 
 - include: configure_cephfs_backend.yml
+  tags:
+    cephfs
   when: 
    - backend_fs == 'cephfs'
   
 # Configure samba + winbind
 - include: configure_samba.yml
+  tags:
+    samba
   when:
     - samba_server | bool
 
 # Configure CTDB
 - include: configure_ctdb.yml
+  tags:
+    ctdb
   when:
     - samba_cluster | bool
 
@@ -28,3 +34,10 @@
 - include: start_samba_server.yml
   when:
     - not domain_member | bool
+
+# Configure shares
+- include: configure_shares.yml
+  tags:
+    shares
+  when:
+    - configure_shares | bool

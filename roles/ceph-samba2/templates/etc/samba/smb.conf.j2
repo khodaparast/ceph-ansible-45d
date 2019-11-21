@@ -31,13 +31,15 @@
   winbind use default domain = {{ active_directory_info.winbind_use_default_domain }}
 {% endif %}
 
-{% if domain_member %}
 {% if windows_acl %}
+  registry shares = yes
   ea support = yes
   map acl inherit = yes
   store dos attributes = yes
   vfs objects = acl_xattr
-{% endif %}
+{% else %}
+  include = /etc/samba/shares.conf
 {% endif %}
 
   log level = {{ samba_global_options.log_level }}
+

@@ -8,6 +8,14 @@
     mode: 0644
   register: "samba_reconfigured"
 
+- name: config_samba | create share include file when not using windows_acl
+  file:
+    path: /etc/samba/shares.conf
+    owner: root
+    group: root
+    mode: 0644
+    state: touch
+
 - name: config_samba | configuring nssswitch.conf
   template:
     src: "etc/nsswitch.conf.j2"

@@ -44,12 +44,29 @@ active_directory_info:
   # domain_join_password: '{{ domain_password }}'
   domain_join_password: ''
 
-windows_acl: false
+windows_acl: true
 
-# Share (SMB) Definitions
-    
+# Samba Share (SMB) Definitions
+configure_shares: true
+samba_shares:
+  - name: 'share1'
+    path: '{{ shared_storage_mountpoint }}/fsgw/share1'
+    writeable: 'yes'
+    guest_ok: 'no'
+    comment: "comment for share1"
+  - name: 'share2'
+    path: '{{ shared_storage_mountpoint }}/fsgw/share2'
+    writeable: 'yes'
+    guest_ok: 'no'
+    comment: "comment for share2"
+  - name: 'share3'
+    path: '{{ shared_storage_mountpoint }}/fsgw/share3'
+    writeable: 'yes'
+    guest_ok: 'no'
+    comment: "comment for share3"
+
+
 ## Samba Cluster (CTDB) Settings
-
 ctdb_public_addresses:
   - vip_address: '192.168.103.10'
     vip_interface: 'eth1'
@@ -75,16 +92,3 @@ ctdb_tunables:
 rados_locking: true
 
 # Config Overrides
-#samba_global_overrides:
-#  global:
-#    logging: 3
-
-#krb5_overrides:
-#  libdefaults:
-#    ticket_lifetime: '24h'
-#  realms:
-#    kdc: ""
-#  logging:
-#    default: FILE:/var/log/ktb5libs.log
-#  domain_realm:
-#    realm: ''

@@ -46,7 +46,7 @@
       # returns: 255 -> Not in Domain, 0 -> In domain
     - name: join_domain | checking if already joined to domain
       shell: "net ads testjoin -k"
-      ignore_errors: true
+      failed_when: false
       register: domain_check
 
     - name: join_domain | joining domain
@@ -64,7 +64,7 @@
 
     - name: join_domain | waiting for ctdb to restart
       wait_for:
-        delay: 5
+        delay: 20
         host: "{{ ansible_default_ipv4.address }}"
         port: 4379
       when: ctdb_restarted.changed
