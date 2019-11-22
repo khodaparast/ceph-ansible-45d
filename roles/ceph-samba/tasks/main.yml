@@ -1,25 +1,43 @@
 ---
-# tasks file for ansible-ctdb
-- include: redhat.yml
-  when: ansible_os_family == "RedHat"
-
-- include: config_cephfs.yml
-  run_once: true
-  when: config_ctdb | bool
-
-- include: config_ctdb.yml
-  when: config_ctdb | bool
-
-- include: config_samba.yml
-  when: ctdb_manages_samba | bool
+# Install packages
+- include: install_redhat_samba.yml
   tags:
-    - ctdb_manage_shares
+  - packages
 
+- include: configure_cephfs_backend.yml
+  tags:
+    cephfs
+  when: 
+   - backend_fs == 'cephfs'
+  
+# Configure samba + winbind
+- include: configure_samba.yml
+  tags:
+    samba
+  when:
+    - samba_server | bool
+
+# Configure CTDB
+- include: configure_ctdb.yml
+  tags:
+    ctdb
+  when:
+    - samba_cluster | bool
+
+# Join Active Directory
 - include: join_domain.yml
-  when: ctdb_samba_join_domain | bool
   tags:
-    - ctdb_join_domain
+  - join_domain
+  when:
+    - domain_member | bool
+  
+- include: start_samba_server.yml
+  when:
+    - not domain_member | bool
 
-#- include: manage_share_folders.yml
-#  tags:
-#    - ctdb_manage_shares
+# Configure shares
+- include: configure_shares.yml
+  tags:
+    shares
+  when:
+    - configure_shares | bool

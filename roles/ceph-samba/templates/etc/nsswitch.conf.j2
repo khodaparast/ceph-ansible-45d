@@ -4,9 +4,9 @@
 # If you have the `glibc-doc-reference' and `info' packages installed, try:
 # `info libc "Name Service Switch"' for information about this file.
 
-passwd:         compat{% if ctdb_samba_join_domain %} winbind{% endif %}
+passwd:         compat{% if domain_member %} winbind{% endif %}
 
-group:          compat{% if ctdb_samba_join_domain %} winbind{% endif %}
+group:          compat{% if domain_member %} winbind{% endif %}
 
 shadow:         compat
 gshadow:        files

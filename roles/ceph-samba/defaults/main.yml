@@ -1,152 +1,93 @@
 ---
-# defaults file for ceph-samba
-samba_file_gw: true 
-samba_ad_member: true
+# samba_repo can either be '45drives' or 'community'.
+# Community will install Samba,CTDB & Winbind packages from the standard CentOS repo.
+# 45drives will install the same packages and version of Samba,CTDB & Winbind as communuty but rebuilt with support for storing CTDB locks in RADOS objects.
+# Default is to install with RADOS support. If not using samba with CephFS then "community" is fine.
+samba_repo: 45drives
+samba_45drives_repo_url: "http://images.45drives.com/ceph/samba/repo" 
+
+# Update samba packages if already installed
+upgrade_samba_packages: true
+
+# Roles
+samba_server: true
 samba_cluster: true
+domain_member: true
 
+# Which backend_fs to use. Currently only cephfs supported
+backend_fs: cephfs
+
+## Cephfs Options
 samba_keyring:
-  - { name: client.samba, caps: { mds: "allow r path=/, allow rwps path=/fsgw, allow rwps path=/ctdb", mon: "allow r", osd: "allow *" }, mode: "0600" }
+  - { name: client.samba, caps: { mds: "allow r path=/, allow rwps path=/fsgw", mon: "allow r", osd: "allow *" }, mode: "0600" }
+shared_storage_mountpoint: /mnt/cephfs
 
-ctdb_backup_configs: true
-ctdb_cephfs_mount: '/mnt/cephfs'
-ctdb_cephfs_client_mount: '/mnt/cephfs/fsgw'  #Defines root mount for creating shares
-
-# When using CephFS as shared storage, CTDB locking is best stored as a rados object rather than a file on the cephfs
-# Only set this to false if not using cephfs as shared FS
-ctdb_rados_locking: true
-# These two varibles are here for legacy and non CephFS deployments
-ctdb_lock_directory: '{{ ctdb_cephfs_mount }}/ctdb' # LEAVE THIS DEFAULT
-ctdb_lockfile: '{{ ctdb_lock_directory }}/.ctdb-lockfile' # LEAVE THIS DEFAULT
-
-# CTDB 
-config_ctdb: true
-ctdb_manages_samba: true
-ctdb_manages_winbind: true
-ctdb_tunables: true
-ctdb_nodes_group: smbs
-# PUBLIC ADDRESS
-ctdb_public_addresses_file: '/etc/ctdb/public_addresses'
-ctdb_vip_address: 192.168.101.27
-ctdb_vip_cidr: 16
-ctdb_vip_interface: 'eth1'
-ctdb_public_addresses:
-  - address: '{{ ctdb_vip_address }}'
-    bind_interface: '{{ ctdb_vip_interface }}'
-    cidr: '{{ ctdb_vip_cidr }}'
-  # Multiple VIPs can be used 
-  # Specify withoput varible for every VIP after the first one
-#  - address: 192.168.101.28
-#      bind_interface: eth1
-#      cidr: 16
-# NODES
-ctdb_nodes_cluster_address_int: 'eth1'  #ensure the address associated with this interface is already configured (eth0|eth1|eth2|enp0s3|enp0s8|etc...)
-ctdb_nodes_file: '/etc/ctdb/nodes'
-# SMB
-ctdb_samba_config: '{{ ctdb_cephfs_mount }}/etc/samba/smb.conf'  #defines shared smb.conf between nodes...stored on CephFS mounts
-ctdb_samba_join_domain: false
-#SMB GLOBAL
-ctdb_samba_global_options:
-  clustering: 'yes'  #defines if CTDB clustering is used...(yes|no)
-  dns_proxy: 'no'
-  deadtime: '2'  #defines idle disconnects..(default 0)...A deadtime of zero indicates that no auto-disconnection should be performed
-  idmap_range: '100000-299999'
-  max_log_size: '1000'
-  netbios_name: 'SMBCLUSTER' #VIP DNS NAME
-  restrict_anonymous: '2'
-  server_string: '%h server (Samba, CentOS)'  #MAY NEED TO SET THIS TO A VAR SO ALL NODES SHARE THE SAME NETBIOS NAME
-  strict_locking: 'yes'  #set to no if sharing same shares via NFS/CIFS..otherwise set to yes
-  unix_password_sync: 'no'
-  usershare_allow_guests: 'no'
-  wins_server: []
-  wins_support: false
-  workgroup: 'WORKGROUP'
-pri_domain_name: '45lab.com'
-ctdb_samba_active_directory_info:
-  domain_join_user: 'ansible'
-  domain_join_password: ''
-  idmap_range: '10000-99999'
-  kdc:
-    - 'dc01.{{ pri_domain_name }}'
-    - 'dc02.{{ pri_domain_name }}'
-  dns_lookup_kdc: true # If true kdc varible is ignored. To specify KDC servrs set the to false and define kdc varible.
+## Samba Server (SMB) Settings
+# Global options
+samba_global_options:
   netbios_name: 'SMBCLUSTER'
-  preferred_master: 'no'
-  realm: '{{ pri_domain_name }}'
-  winbind_enum_users: 'yes'  #if set to no then getent passwd will not output domain users
-  winbind_enum_groups: 'yes'  #if set to no then getent group will not output domain groups
-  winbind_cache_time: '900'
-  winbind_use_default_domain: 'yes'
-  workgroup: '45LAB'
-ctdb_samba_master_node: 'node1'  #only used to join domain..
-# SHARES
-ctdb_samba_shares:  #only creating base shares directory...manage from Windows to define add's ACL's
-  - name: 'public'
-    acls:
-      - etype: 'group'
-        entity: ''
-        perms: 'rx'
-        recurse: false
-        default: true
-      - etype: 'group'
-        entity: 'Domain Admins'
-        perms: 'rwx'
-        recurse: false
-        default: false
-      - etype: 'group'
-        entity: 'Domain Admins'
-        perms: 'rwx'
-        recurse: false
-        default: true
-      - etype: 'group'
-        entity: 'Domain Users'
-        perms: 'rwx'
-        recurse: false
-        default: false
-      - etype: 'group'
-        entity: 'Domain Users'
-        perms: 'rwx'
-        recurse: false
-        default: true
-      - etype: 'user'
-        entity: 'Domain Admins'
-        perms: 'rwx'
-        recurse: false
-        default: false
-      - etype: 'user'
-        entity: 'Domain Admins'
-        perms: 'rwx'
-        recurse: false
-        default: true
-      - etype: 'user'
-        entity: 'Domain Users'
-        perms: 'rwx'
-        recurse: false
-        default: false
-      - etype: 'user'
-        entity: 'Domain Users'
-        perms: 'rwx'
-        recurse: false
-        default: true
-      - etype: 'user'
-        entity: 'root'
-        perms: 'rwx'
-        recurse: false
-        default: false
-      - etype: 'user'
-        entity: 'root'
-        perms: 'rwx'
-        recurse: false
-        default: true
-    browseable: 'yes'
-    comment: 'Public Share(Open)'
-    directory_perms: 'u=rwx,g=rwx,o='
-    group: 'Domain Admins'
-    owner: 'root'
-    path: '{{ ctdb_samba_shares_root_dir }}/public'
-    read_only: 'no'
-    recurse_directory_perms: false
-ctdb_samba_shares_root_dir: '{{ ctdb_cephfs_client_mount }}'  #defines root directory where shares will be created
-ctdb_samba_shares_root_perms:
-  owner: 'root'
-  group: 'root'
-  directory_perms: 'u=rwx,g=rx,o=rx'
+  server_string: 'Samba %v'
+  idmap_range: '10000-99999'
+  log_level: '0'
+
+# Domain Authentication (Winbind) Settings
+# Todo add support for choice of sssd or winbind
+active_directory_info:
+  workgroup: 'SAMDOM'
+  idmap_range: '100000 - 999999'
+  realm: 'SAMDOM.COM'
+  winbind_enum_groups: yes
+  winbind_enum_users: yes
+  winbind_use_default_domain: yes
+  domain_join_user: ''
+  # Use ansible vault to create encrypted varible "domain_password"
+  # domain_join_password: '{{ domain_password }}'
+  domain_join_password: ''
+
+windows_acl: true
+
+# Samba Share (SMB) Definitions
+configure_shares: true
+samba_shares:
+  - name: 'share1'
+    path: '{{ shared_storage_mountpoint }}/fsgw/share1'
+    writeable: 'yes'
+    guest_ok: 'no'
+    comment: "comment for share1"
+  - name: 'share2'
+    path: '{{ shared_storage_mountpoint }}/fsgw/share2'
+    writeable: 'yes'
+    guest_ok: 'no'
+    comment: "comment for share2"
+  - name: 'share3'
+    path: '{{ shared_storage_mountpoint }}/fsgw/share3'
+    writeable: 'yes'
+    guest_ok: 'no'
+    comment: "comment for share3"
+
+## Samba Cluster (CTDB) Settings
+ctdb_public_addresses:
+  - vip_address: '192.168.103.10'
+    vip_interface: 'eth1'
+    subnet_mask: '16'
+  - vip_address: '192.168.103.11'
+    vip_interface: 'eth1'
+    subnet_mask: '16'
+
+ctdb_tunables:
+  - key: 'ControlTimeout'
+    value: '15'
+  - key: 'ElectionTimeout'
+    value: '2'
+  - key: 'KeepaliveInterval'
+    value: '1'
+  - key: 'KeepaliveLimit'
+    value: '3'
+  - key: 'MonitorInterval'
+    value: '5'
+  - key: 'TakeoverTimeout'
+    value: '5'
+
+rados_locking: true
+
+# Config Overrides

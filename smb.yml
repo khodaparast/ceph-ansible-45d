@@ -65,7 +65,6 @@
   gather_facts: false
   become: True
   any_errors_fatal: true
-  serial: 1
   pre_tasks:
     - name: set ceph client install 'In Progress'
       run_once: true
@@ -85,7 +84,7 @@
     - import_role:
         name: ceph-common
     - import_role:
-        name: ceph-samba
+        name: ceph-samba2
 
   post_tasks:
     - name: set ceph samba install 'Complete'
