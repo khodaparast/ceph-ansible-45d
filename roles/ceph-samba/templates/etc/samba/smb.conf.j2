@@ -37,8 +37,10 @@
   map acl inherit = yes
   store dos attributes = yes
   vfs objects = acl_xattr
-{% else %}
-  include = /etc/samba/shares.conf
+{% endif %}
+
+{% if include_overrides %}
+  include = /etc/samba/overrides.conf
 {% endif %}
 
   log level = {{ samba_global_options.log_level }}

@@ -271,8 +271,11 @@ cephfs_pools:
   - "{{ cephfs_data_pool }}"
   - "{{ cephfs_metadata_pool }}"
 
-## OSD options
-#
+
+###############
+# OSD OPTIONS #
+###############
+
 #is_hci: false
 #hci_safety_factor: 0.2
 #non_hci_safety_factor: 0.7

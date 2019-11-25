@@ -5,7 +5,7 @@
       shell: net rpc rights grant "Domain Admins" SeDiskOperatorPrivilege -U "{{ active_directory_info.domain_join_user }}"%"{{ active_directory_info.domain_join_password }}"
       run_once: true
 
-    - name: configure_shares - Create samba_shares paths and set ownership when not using default domain
+    - name: configure_shares - Create samba_shares paths and set ownership
       file:
         path: "{{ item.path }}"
         owner: "root"

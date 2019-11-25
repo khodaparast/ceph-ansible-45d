@@ -8,13 +8,13 @@
     mode: 0644
   register: "samba_reconfigured"
 
-- name: config_samba | create share include file when not using windows_acl
+- name: config_samba | create include override files
   file:
-    path: /etc/samba/shares.conf
-    owner: root
+    path: /etc/samba/overrides.conf
     group: root
     mode: 0644
     state: touch
+  when: include_overrides | bool
 
 - name: config_samba | configuring nssswitch.conf
   template:

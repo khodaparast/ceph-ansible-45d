@@ -24,13 +24,16 @@ shared_storage_mountpoint: /mnt/cephfs
 
 ## Samba Server (SMB) Settings
 # Global options
+include_overides: true
+
 samba_global_options:
   netbios_name: 'SMBCLUSTER'
   server_string: 'Samba %v'
   idmap_range: '10000-99999'
-  log_level: '3'
+  log_level: '0'
 
 # Domain Authentication (Winbind) Settings
+# Todo add support for choice of sssd or winbind
 active_directory_info:
   workgroup: 'SAMDOM'
   idmap_range: '100000 - 999999'
@@ -38,32 +41,54 @@ active_directory_info:
   winbind_enum_groups: yes
   winbind_enum_users: yes
   winbind_use_default_domain: yes
+  domain_join_user: ''
+  # Use ansible vault to create encrypted varible "domain_password"
+  # domain_join_password: '{{ domain_password }}'
+  domain_join_password: ''
 
+# Samba Share (SMB) Definitions
+configure_shares: true
 windows_acl: true
+samba_shares:
+  - name: 'share1'
+    path: '{{ shared_storage_mountpoint }}/fsgw/share1'
+    writeable: 'yes'
+    guest_ok: 'no'
+    comment: "comment for share1"
+  - name: 'share2'
+    path: '{{ shared_storage_mountpoint }}/fsgw/share2'
+    writeable: 'yes'
+    guest_ok: 'no'
+    comment: "comment for share2"
+  - name: 'share3'
+    path: '{{ shared_storage_mountpoint }}/fsgw/share3'
+    writeable: 'yes'
+    guest_ok: 'no'
+    comment: "comment for share3"
 
-# Share (SMB) Definitions
-    
 ## Samba Cluster (CTDB) Settings
-
 ctdb_public_addresses:
   - vip_address: '192.168.103.10'
-    vip_interface: 'eth1'
+    vip_interface: 'eth0'
     subnet_mask: '16'
   - vip_address: '192.168.103.11'
-    vip_interface: 'eth1'
+    vip_interface: 'eth0'
     subnet_mask: '16'
 
-# Config Overrides
-#samba_global_overrides:
-#  global:
-#    logging: 3
+ctdb_tunables:
+  - key: 'ControlTimeout'
+    value: '15'
+  - key: 'ElectionTimeout'
+    value: '2'
+  - key: 'KeepaliveInterval'
+    value: '1'
+  - key: 'KeepaliveLimit'
+    value: '3'
+  - key: 'MonitorInterval'
+    value: '5'
+  - key: 'TakeoverTimeout'
+    value: '5'
 
-#krb5_overrides:
-#  libdefaults:
-#    ticket_lifetime: '24h'
-#  realms:
-#    kdc: ""
-#  logging:
-#    default: FILE:/var/log/ktb5libs.log
-#  domain_realm:
-#    realm: ''
+rados_locking: true
+
+# Config Overrides

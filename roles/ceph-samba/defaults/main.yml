@@ -24,6 +24,8 @@ shared_storage_mountpoint: /mnt/cephfs
 
 ## Samba Server (SMB) Settings
 # Global options
+include_overrides: true
+
 samba_global_options:
   netbios_name: 'SMBCLUSTER'
   server_string: 'Samba %v'
@@ -44,10 +46,9 @@ active_directory_info:
   # domain_join_password: '{{ domain_password }}'
   domain_join_password: ''
 
-windows_acl: true
-
 # Samba Share (SMB) Definitions
 configure_shares: true
+windows_acl: true
 samba_shares:
   - name: 'share1'
     path: '{{ shared_storage_mountpoint }}/fsgw/share1'
@@ -90,4 +91,3 @@ ctdb_tunables:
 
 rados_locking: true
 
-# Config Overrides
