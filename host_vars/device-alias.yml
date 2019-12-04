@@ -1,5 +1,0 @@
----
-- hosts: osds
-  tasks:
-    - import_role:
-        name: ceph-alias
