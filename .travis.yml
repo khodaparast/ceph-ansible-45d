@@ -8,5 +8,5 @@ install:
   - pip install -r requirements.txt
   - pip install ansible-lint pytest
 script:
-  - pytest -vvvv library/
+  - pytest -vvvv library/ plugins/
   - for i in $(ls -1 roles/); do ansible-lint -x 204 -v roles/$i/ ; done
