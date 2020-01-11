@@ -55,6 +55,8 @@
         name: ceph-validate
     - import_role:
         name: ceph-infra
+    - import_role:
+        name: ceph-common
 
 - hosts: all
   become: true
@@ -64,8 +66,6 @@
             name: ceph-defaults
         - import_role:
             name: ceph-facts
-        - import_role:
-            name: ceph-handler
         - import_role:
             name: ceph-container-engine
         - import_role:
@@ -81,13 +81,6 @@
           tags: ['ceph_update_config']
         - import_role:
             name: ceph-facts
-          tags: ['ceph_update_config']
-        - import_role:
-            name: ceph-handler
-        - import_role:
-            name: ceph-common
-        - import_role:
-            name: ceph-config
           tags: ['ceph_update_config']
         - import_role:
             name: ceph-prometheus

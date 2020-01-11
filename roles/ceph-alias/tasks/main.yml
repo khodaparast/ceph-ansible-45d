@@ -9,12 +9,19 @@
     name: ipmitool
     state: present
 
-- name: git clone drive id tools
-  git:
-    repo: "{{ tools_git_repo }}"
-    dest: "{{ tools_install_dir }}"
-    clone: yes
+- name: download tools release
+  unarchive:
+    src: https://github.com/45Drives/tools/archive/v0.1.tar.gz
+    dest: /opt/
+    remote_src: yes
 
+- name: link tools to correct path
+  file:
+    src: "/opt/tools-{{ tools_version }}"
+    dest: "{{ tools_install_dir }}"
+    state: link
+    force: true 
+    
 - name: Install alias udev rules
   command: sh "{{ tools_install_dir }}"/alias_setup.sh
 
@@ -35,5 +42,6 @@
 - name: Show drive layout
   debug:
     msg: "{{ drive_layout.stdout_lines }}"
-  when: not drive_layout.failed
-  when: not hybrid_chassis | bool
+  when: 
+   - not drive_layout.failed
+   - not hybrid_chassis | bool
