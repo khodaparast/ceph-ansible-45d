@@ -289,7 +289,7 @@ public_network: 192.168.0.0/16
 #osd_mount_options_xfs: noatime,largeio,inode64,swalloc
 osd_objectstore: bluestore
 osd_scenario: lvm
-hybrid_cluster: true
+hybrid_cluster: false
 # Any device containing these patterns in their path will be excluded.
 osd_auto_discovery_exclude: "dm-*|loop*|md*"
 
