@@ -72,7 +72,7 @@
             name: ceph-node-exporter
       when: dashboard_enabled | bool
 
-- hosts: '{{ groups["metrics"][0] | default(groups["mgrs"][0]) | default(groups["mons"][0]) | default(omit) }}'
+- hosts: '{{ groups["metrics"][0] | default(omit) }}'
   become: true
   tasks:
     - block:

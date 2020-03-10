@@ -36,3 +36,10 @@
 
 - name: include start_nfs.yml
   import_tasks: start_nfs.yml
+
+- name: include start_nfs_cluster.yml
+  import_tasks: start_nfs_cluster.yml
+  when:
+    - ceph_nfs_rados_backend_driver == "rados_ng"
+  tags:
+    nfs_cluster

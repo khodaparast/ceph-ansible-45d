@@ -362,9 +362,9 @@ cephfs_pools:
 is_hci: false
 hci_safety_factor: 0.2
 non_hci_safety_factor: 0.7
-osd_memory_target: 4294967296
+osd_memory_target: 2147483648
 journal_size: 5120 # OSD journal size in MB
-block_db_size: -1 # block db size in bytes for the ceph-volume lvm batch. -1 means use the default of 'as big as possible'.
+block_db_size: 32212254720 # block db size in bytes for the ceph-volume lvm batch. -1 means use the default of 'as big as possible'.
 public_network: 0.0.0.0/0
 cluster_network: "{{ public_network | regex_replace(' ', '') }}"
 osd_mkfs_type: xfs
@@ -386,6 +386,8 @@ filestore_xattr_use_omap: null
 #
 mds_use_fqdn: false # if set to true, the MDS name used will be the fqdn in the ceph.conf
 mds_max_mds: 1
+mds_max_file_size: 10995116277760
+mds_min_standby_daemons: 1
 
 ## Rados Gateway options
 #

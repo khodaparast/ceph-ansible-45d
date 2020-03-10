@@ -1,0 +1,61 @@
+---
+- name: red hat based systems tasks
+  when: ansible_os_family == 'RedHat'
+  block:
+    - name: set_fact common pkgs and repos
+      set_fact:
+        common_pkgs:
+          - tcmu-runner
+          - targetcli
+        iscsi_base:
+          - ceph-iscsi
+
+    - name: 45Drives Repository - Configure 45drives ceph extras repository
+      yum_repository:
+        name: ceph_45drives
+        description: 45Drives Ceph Extra Packages
+        gpgcheck: no
+        enabled: yes
+        state: present
+        baseurl: "{{ ceph_45drives_repo_url }}"
+        file: ceph_45drives
+        priority: "1"
+      register: result
+      until: result is success
+
+    - name: set_fact ceph_iscsi_pkgs
+      set_fact:
+        ceph_iscsi_pkgs: "{{ common_pkgs + iscsi_base }}"
+
+    - name: install ceph iscsi package
+      package:
+        name: "{{ item }}"
+        state: "{{ (upgrade_ceph_packages|bool) | ternary('latest','present') }}"
+      register: result
+      until: result is succeeded
+      with_items: "{{ ceph_iscsi_pkgs }}"
+
+- name: check the status of the target.service override
+  stat:
+    path: /etc/systemd/system/target.service
+  register: target
+
+- name: mask the target service - preventing manual start
+  systemd:
+    name: target
+    masked: yes
+    enabled: no
+  when:
+    - target.stat.exists
+    - not target.stat.islnk
+
+- name: start tcmu-runner, rbd-target-api and rbd-target-gw
+  service:
+    name: "{{ item }}"
+    state: started
+    enabled: yes
+    masked: no
+  with_items:
+    - tcmu-runner
+    - rbd-target-gw
+    - rbd-target-api

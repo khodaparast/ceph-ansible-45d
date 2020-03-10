@@ -75,3 +75,21 @@
   changed_when: false
   delegate_to: "{{ groups[mon_group_name][0] }}"
   when: mds_max_mds > 1
+
+- name: set max_file_size
+  command: "{{ container_exec_cmd | default('') }} ceph --cluster {{ cluster }} fs set {{ cephfs }} max_file_size {{ mds_max_file_size }}"
+  changed_when: false
+  delegate_to: "{{ groups[mon_group_name][0] }}"
+  when: mds_max_file_size is defined
+
+- name: enable standby-replay when more than one mds server
+  command: "{{ ner_exec_cmd | default('') }} ceph --cluster {{ cluster }} fs set {{ cephfs }} allow_standby_replay true"
+  changed_when: false
+  delegate_to: "{{ groups[mon_group_name][0] }}"
+  when: groups.get(mds_group_name, []) | length > 1
+
+- name: set minimum standby mds daemons
+  command: "{{ ner_exec_cmd | default('') }} ceph --cluster {{ cluster }} fs set {{ cephfs }} standby_count_wanted {{ mds_min_standby_daemons }}"
+  changed_when: false
+  delegate_to: "{{ groups[mon_group_name][0] }}"
+  when: groups.get(mds_group_name, []) | length > 1

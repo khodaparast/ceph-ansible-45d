@@ -6,8 +6,11 @@
 
 - name: install ipmitool
   package:
-    name: ipmitool
+    name: "{{ item }}"
     state: present
+  with_items:
+    - ipmitool
+    - pciutils
 
 - name: download tools release
   unarchive:

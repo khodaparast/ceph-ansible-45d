@@ -1,0 +1,13 @@
+# {{ ansible_managed }}
+[Unit]
+Description=Set CPU Power Governor to Performance and Disable Idle States
+After=network.target
+
+[Service]
+Type=oneshot
+ExecStart=/bin/cpupower frequency-set -g performance
+ExecStart=/bin/cpupower idle-set -D 1
+StandardOutput=journal
+
+[Install]
+WantedBy=multi-user.target

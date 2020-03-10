@@ -640,7 +640,9 @@
     - "{{ nfs_group_name|default('nfss') }}"
     - "{{ client_group_name|default('clients') }}"
     - "{{ mgr_group_name|default('mgrs') }}"
+    - "{{ rgwloadbalancer_group_name |default('rgwloadbalancers') }}"
     - metrics
+    - iscsigws
 
   gather_facts: false # Already gathered previously
 

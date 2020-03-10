@@ -1,0 +1,8 @@
+---
+lvm_volumes:
+  - data: /dev/1-1
+  - data: /dev/1-11
+  - data: /dev/1-12
+  - data: /dev/1-13
+  - data: /dev/1-14
+  - data: /dev/1-15

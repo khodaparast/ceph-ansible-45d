@@ -44,39 +44,6 @@
   when:
     - item.create|bool
 
-- name: cephx related tasks
-  block:
-    - name: copy bootstrap cephx keys
-      copy:
-        src: "{{ fetch_directory }}/{{ fsid }}{{ item.name }}"
-        dest: "{{ item.name }}"
-        owner: "ceph"
-        group: "ceph"
-        mode: "0600"
-      with_items:
-        - { name: "/var/lib/ceph/bootstrap-rgw/{{ cluster }}.keyring", copy_key: "{{ nfs_obj_gw }}" }
-      when:
-        - item.copy_key|bool
-
-    - name: nfs object gateway related tasks
-      block:
-        - name: create rados gateway keyring
-          command: ceph --cluster {{ cluster }} --name client.bootstrap-rgw --keyring /var/lib/ceph/bootstrap-rgw/{{ cluster }}.keyring auth get-or-create client.rgw.{{ ansible_hostname }} osd 'allow rwx' mon 'allow rw' -o /var/lib/ceph/radosgw/{{ cluster }}-rgw.{{ ansible_hostname }}/keyring
-          args:
-            creates: /var/lib/ceph/radosgw/{{ cluster }}-rgw.{{ ansible_hostname }}/keyring
-          changed_when: false
-
-        - name: set rados gateway key permissions
-          file:
-            path: /var/lib/ceph/radosgw/{{ cluster }}-rgw.{{ ansible_hostname }}/keyring
-            owner: "ceph"
-            group: "ceph"
-            mode: "0600"
-      when:
-        - nfs_obj_gw | bool
-  when:
-    - cephx | bool
-
 - name: change ownership on /var/log/ganesha
   file:
     path: /var/log/ganesha

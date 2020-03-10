@@ -10,6 +10,13 @@ NFS_Core_Param
 {% if ceph_nfs_bind_addr is defined %}
        Bind_Addr={{ ceph_nfs_bind_addr }};
 {% endif %}
+        Enable_NLM = false;
+        Enable_RQUOTA = false;
+{% if ceph_nfs_limit_nfs4 %}
+        Protocols = 4;
+{% else %}
+        Protocols = 3,4;
+{% endif %}
 }
 
 {% if ceph_nfs_disable_caching or nfs_file_gw %}

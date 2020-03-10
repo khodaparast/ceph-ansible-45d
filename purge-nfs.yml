@@ -1,13 +1,13 @@
 ---
-# This playbook purges samba 
+# This playbook purges nfs 
 # It removes: packages, configuration files and ALL THE DATA
 #
 # Use it like this:
-# ansible-playbook purge-samba.yml
+# ansible-playbook purge-nfs.yml
 #     Prompts for confirmation to purge, defaults to no and
 #     doesn't purge the cluster. yes purges the cluster.
 #
-# ansible-playbook -e ireallymeanit=yes|no purge-samba.yml
+# ansible-playbook -e ireallymeanit=yes|no purge-nfs.yml
 #     Overrides the prompt using -e option. Can be used in
 #     automation scripts to avoid interactive prompt.
 
@@ -31,87 +31,69 @@
          invoking the playbook"
     when: ireallymeanit != 'yes'
 
-- name: stop services
+
+- name: stop NFS services
   hosts:
-    - smbs
+    - nfss
 
   tasks:
-  - name: check for ctdb
+  - name: check for nfs-ganesha
     stat:
-      path: /usr/lib/systemd/system/ctdb.service
-    register: ctdb_present
+      path: /usr/lib/systemd/system/nfs-ganesha.service
+    register: nfs_present
 
-  - name: stop ctdb service
+  - name: stop nfs-ganesha service
     systemd:
-      name: ctdb
+      name: nfs-ganesha
       state: stopped
       enabled: no
-    when: ctdb_present.stat.exists
+    when: nfs_present.stat.exists
 
-  - name: check for samba
+  - name: check for corosync
     stat:
-      path: /usr/lib/systemd/system/smb.service
-    register: smb_present
+      path: /usr/lib/systemd/system/corosync.service
+    register: corosync_present
 
-  - name: stop smb service
+  - name: stop corosync service
     systemd:
-      name: smb
+      name: corosync
       state: stopped
       enabled: no
-    when: smb_present.stat.exists
+    when: corosync_present.stat.exists
 
-  - name: check for winbind
+  - name: check for pcsd
     stat:
-      path: /usr/lib/systemd/system/winbind.service
-    register: winbind_present
+      path: /usr/lib/systemd/system/pcsd.service
+    register: pcsd_present
 
-  - name: stop winbind service
-    systemd:
-      name: winbind
-      state: stopped
-      enabled: no
-    when: winbind_present.stat.exists
-
-- name: cleanup cephfs mounts on samba gateways
-  hosts:
-    - smbs
-
-  gather_facts: false # Already gathered previously
-  become: true
+  - name: destroy pcs cluster
+    command: pcs cluster destroy
+    when: pcsd_present.stat.exists
   
-  tasks:
-  - name: umount cephfs mounts on samba gateway
-    mount:
-      name: "/mnt/cephfs/fsgw"
-      state: absent
+  - name: stop pcsd service
+    systemd:
+      name: pcsd
+      state: stopped
+      enabled: no
+    when: pcsd_present.stat.exists
 
-  - name:  remove samba cephfs secret keys
-    file:
-      path: "{{ item }}"
-      state: absent
-    with_items:
-      - /etc/ceph/samba.secret
-      - /etc/ceph/ceph.client.samba.keyring
-
-- name: final cleanup - purge samba packages and purge config
+- name: final cleanup - purge nfs packages and purge config
   vars:
-    samba_packages:
-      - samba*
-      - ctdb*
-      - pam_krb5
-      - libsmbclient
-      - libwbclient
+    nfs_packages:
+      - nfs-ganesha*
+      - corosync*
+      - pcs
 
   hosts:
-    - smbs
+    - nfss
 
   gather_facts: false # Already gathered previously
   become: true
   tasks:
 
-  - name: purge samba packages
+  - name: purge nfs packages
     package:
-      name: "{{ samba_packages }}"
+      name: "{{ nfs_packages }}"
       state: absent
 
   - name: remove config
@@ -119,31 +101,23 @@
       path: "{{ item }}"
       state: absent
     with_items:
-      - /etc/samba
-      - /etc/ctdb
-      - /etc/krb5.conf
-      - /var/lib/ctdb
-      - /var/lib/samba
-
-  - name: remove winbind from nsswitch
-    replace:
-      path: /etc/nsswitch.conf
-      regexp: 'winbind'
-      replace: ""
+      - /etc/ganesha
+      - /etc/pacemaker
+      - /etc/corosync
 
   - name: remove logs
     file:
-     path: /var/log/samba
+     path: /var/log/ganesha
      state: absent
      
   - name: Check if samba_45drives repo is present
     stat:
-      path: /etc/yum.repos.d/samba_45drives.repo
+      path: /etc/yum.repo.d/nfs_ganesha_stable.repo
     register: stat_result
 
   - name: Remove samba_45drives repository (and clean up left-over metadata)
     yum_repository:
-      name: samba_45drives
+      name: nfs_ganesha_stable
       state: absent
   
   - name: yum-clean-metadata

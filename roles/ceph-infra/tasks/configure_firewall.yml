@@ -134,6 +134,63 @@
       - nfs_group_name in group_names
     tags: firewall
 
+  - name: open corosync ports
+    firewalld:
+      port: "5404/udp"
+      zone: "{{ ceph_nfs_firewall_zone }}"
+      source: "{{ item }}"
+      permanent: true
+      immediate: true
+      state: enabled
+    with_items: "{{ public_network.split(',') }}"
+    when:
+      - nfs_group_name is defined
+      - nfs_group_name in group_names
+    tags: firewall
+
+  - name: open corosync ports
+    firewalld:
+      port: "5405/udp"
+      zone: "{{ ceph_nfs_firewall_zone }}"
+      source: "{{ item }}"
+      permanent: true
+      immediate: true
+      state: enabled
+    with_items: "{{ public_network.split(',') }}"
+    when:
+      - nfs_group_name is defined
+      - nfs_group_name in group_names
+    tags: firewall
+
+  - name: open corosync ports
+    firewalld:
+      port: "5406/udp"
+      zone: "{{ ceph_nfs_firewall_zone }}"
+      source: "{{ item }}"
+      permanent: true
+      immediate: true
+      state: enabled
+    with_items: "{{ public_network.split(',') }}"
+    when:
+      - nfs_group_name is defined
+      - nfs_group_name in group_names
+    tags: firewall
+
+  - name: open pacemaker ports
+    firewalld:
+      port: "2224/tcp"
+      zone: "{{ ceph_nfs_firewall_zone }}"
+      source: "{{ item }}"
+      permanent: true
+      immediate: true
+      state: enabled
+    with_items: "{{ public_network.split(',') }}"
+    when:
+      - nfs_group_name is defined
+      - nfs_group_name in group_names
+    tags: firewall
+
+
   - name: open rbdmirror ports
     firewalld:
       service: ceph
@@ -208,6 +265,49 @@
           permanent: true
           immediate: true
           state: enabled
+    when: dashboard_enabled | bool
+
+  - block:
+      - name: open grafana port
+        firewalld:
+          port: "3000/tcp"
+          zone: "{{ ceph_dashboard_firewall_zone }}"
+          permanent: true
+          immediate: true
+          state: enabled
+
+      - name: open node_exporter port
+        firewalld:
+          port: "9100/tcp"
+          zone: "{{ ceph_dashboard_firewall_zone }}"
+          permanent: true
+          immediate: true
+          state: enabled
+
+      - name: open mgr/prometheus port
+        firewalld:
+          port: "9283/tcp"
+          zone: "{{ ceph_dashboard_firewall_zone }}"
+          permanent: true
+          immediate: true
+          state: enabled
+
+      - name: open dashboard port
+        firewalld:
+          port: "{{ dashboard_port }}/tcp"
+          zone: "{{ ceph_dashboard_firewall_zone }}"
+          permanent: true
+          immediate: true
+          state: enabled
+      
+      - name: open dashboard haproxy port
+        firewalld:
+          port: "{{ dashboard_haproxy_port }}/tcp"
+          zone: "{{ ceph_dashboard_firewall_zone }}"
+          permanent: true
+          immediate: true
+          state: enabled
+        when: dashboard_haproxy | bool
     when: dashboard_enabled | bool
 
   - name: open haproxy ports

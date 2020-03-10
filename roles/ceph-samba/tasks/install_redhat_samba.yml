@@ -7,13 +7,13 @@
 
 - name: 45Drives Repository - Configure 45drives samba repository
   yum_repository:
-    name: samba_45drives
+    name: ceph_45drives
     description: 45Drives Samba $basearch repo
     gpgcheck: no
     enabled: yes
     state: present
-    baseurl: "{{ samba_45drives_repo_url }}"
-    file: samba_45drives
+    baseurl: "{{ ceph_45drives_repo_url }}"
+    file: ceph_45drives
     priority: "1"
   register: result
   until: result is success

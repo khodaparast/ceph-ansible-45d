@@ -57,3 +57,24 @@
     - (ceph_tcmalloc_max_total_thread_cache | int) > 0
     - osd_objectstore == 'filestore'
     - (ceph_origin == 'repository' or ceph_origin == 'distro')
+
+- name: disable CPU power saving on bare metal servers
+  when: 
+    - not containerized_deployment | bool
+    - ansible_virtualization_role == 'host'
+  block:
+    - name: create cpu performance service
+      template:
+        src: "cpusetperformance.service.j2"
+        dest: "/etc/systemd/system/"
+        group: "root"
+        owner: "root"
+        mode: "0644"
+        force: "yes"
+
+    - name: start cpu performance service
+      systemd:
+        name: cpusetperformance
+        state: started
+        enabled: yes
+        masked: no

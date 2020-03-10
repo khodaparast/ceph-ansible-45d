@@ -34,14 +34,14 @@ ceph_nfs_enable_service: true
 # information.
 nfs_file_gw: true
 # Enable NFS Object access
-nfs_obj_gw: true
+nfs_obj_gw: false
 
 ######################
 # NFS Ganesha Config #
 ######################
 ceph_nfs_log_file: "/var/log/ganesha/ganesha.log"
 ceph_nfs_ceph_user: "admin"
-ceph_nfs_fs_root: "nfsroot"
+ceph_nfs_fs_root: "nfs"
 
 nfs_keyring:
   - { name: client.nfs, caps: { mds: "allow r path=/, allow rwps path=/{{ ceph_nfs_fs_root }}", mon: "allow r", osd: "allow *" }, mode: "0600" }
@@ -55,7 +55,7 @@ ceph_nfs_rados_backend: true
 # backend mode, either rados_kv,rados_ng, or rados_cluster
 # Default (rados_ng) is for for single gateway/active-passive use. rados_kv is obseleted by rados_ng
 # rados_cluster is for active-active nfs cluster. Requires ganesha-grace-db to be initilaized
-ceph_nfs_rados_backend_driver: "rados_cluster"
+ceph_nfs_rados_backend_driver: "rados_ng"
 
 # Name of the rados pool and namespace used to store a list of the export rados
 # object URLS
@@ -77,6 +77,18 @@ ceph_nfs_grace_namespace: "ganesha-grace"
 # Note: Irrespective of this option's setting, ganesha's caching is disabled
 # when setting 'nfs_file_gw' option as true.
 ceph_nfs_disable_caching: false
+
+ceph_nfs_limit_nfs4: false
+
+####################
+#    PCS Config    #
+####################
+pcmk_cluster_name: hacluster
+pcmk_user: hacluster
+
+ceph_nfs_floating_ip_address: '192.168.18.73'
+ceph_nfs_floating_ip_cidr: '16'
+
 
 ####################
 # FSAL Ceph Config #

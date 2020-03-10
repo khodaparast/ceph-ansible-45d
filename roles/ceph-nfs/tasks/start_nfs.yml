@@ -14,18 +14,6 @@
     group: root
     mode: "0755"
 
-# - name: generate ganesha configuration file
-#   action: config_template
-#   args:
-#     src: "ganesha.conf.j2"
-#     dest: /etc/ganesha/ganesha.conf
-#     owner: "root"
-#     group: "root"
-#     mode: "0644"
-#     config_type: ini
-#   notify:
-#     - restart ceph nfss
-
 - name: generate ganesha configuration file
   template:
     src: "ganesha.conf.j2"
@@ -44,6 +32,7 @@
   check_mode: no
   when:
     - ceph_nfs_rados_backend | bool
+    - ceph_nfs_rados_backend_driver == 'rados_cluster'
   delegate_to: "{{ groups[mon_group_name][0] }}"
   
 - name: initialize ganesha rados grace database
@@ -98,7 +87,7 @@
     - containerized_deployment | bool
     - ceph_nfs_enable_service | bool
 
-- name: start nfs gateway service
+- name: start nfs gateway service - active active
   systemd:
     name: nfs-ganesha
     state: started
@@ -107,3 +96,16 @@
   when:
     - not containerized_deployment | bool
     - ceph_nfs_enable_service | bool
+    - ceph_nfs_rados_backend_driver == 'rados_cluster'
+
+- name: start nfs gateway service - active passive
+  systemd:
+    name: nfs-ganesha
+    state: started
+    enabled: yes
+    masked: no
+  run_once: true
+  when:
+    - not containerized_deployment | bool
+    - ceph_nfs_enable_service | bool
+    - ceph_nfs_rados_backend_driver == 'rados_ng'

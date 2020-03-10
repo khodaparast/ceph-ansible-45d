@@ -5,6 +5,8 @@
 
 [config]
 cluster_name = {{ cluster }}
+pool = {{ iscsi_pool_name }}
+gateway_keyring = ceph.client.admin.keyring
 
 # API settings.
 # The API supports a number of options that allow you to tailor it to your

@@ -1,0 +1,58 @@
+# {{ ansible_managed  }}
+global
+    log         127.0.0.1 local1
+    log         127.0.0.1 local2
+
+    chroot      /var/lib/haproxy
+    pidfile     /var/run/haproxy.pid
+    maxconn     8000
+    user        haproxy
+    group       haproxy
+    daemon
+
+    stats socket /var/lib/haproxy/stats
+
+{% if dashboard_haproxy_cert %}
+    tune.ssl.default-dh-param 4096
+    ssl-default-bind-ciphers EECDH+AESGCM:EDH+AESGCM
+    ssl-default-bind-options no-sslv3 no-tlsv10 no-tlsv11 no-tls-tickets 
+{% endif %}
+defaults
+    mode                    http
+    log                     global
+    option                  httplog
+    no option               httpclose
+    no option               http-server-close
+    no option               forceclose
+    retries                 3
+    timeout http-request    10s
+    timeout queue           1m
+    timeout connect         10s
+    timeout client          1m
+    timeout server          1m
+    timeout http-keep-alive 10s
+    timeout check           10s
+    maxconn                 8000
+
+    stats enable
+    stats hide-version
+    stats refresh 30s
+    stats show-node
+    stats uri /haproxy?stats
+    stats auth admin:haproxy
+
+frontend http
+{% if dashboard_haproxy_cert %}
+    bind *:{{ dashboard_haproxy_port }} ssl crt {{ dashboard_haproxy_cert }}
+{% else %}
+    bind *:{{ dashboard_haproxy_port }}
+{% endif %}
+    default_backend ceph-dashboard
+
+backend ceph-dashboard
+    balance roundrobin
+    option httpchk GET /
+    http-check expect status 200
+{% for host in groups[mgr_group_name] %}
+	server {{ hostvars[host]['ansible_hostname'] }} {{ hostvars[host]['ansible_default_ipv4']['address'] }}:{{ dashboard_port }} check
+{% endfor %}

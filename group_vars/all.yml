@@ -123,30 +123,8 @@ ntp_daemon_type: ntpd
 # INSTALL #
 ###########
 ceph_repository_type: community
-
-# ORIGIN SOURCE
-#
-# Choose between:
-# - 'repository' means that you will get ceph installed through a new repository. Later below choose between 'community', 'rhcs', 'dev' or 'obs'
-# - 'distro' means that no separate repo file will be added
-#  you will get whatever version of Ceph is included in your Linux distro.
-# 'local' means that the ceph binaries will be copied over from the local machine
 ceph_origin: repository
-#valid_ceph_origins:
-#  - repository
-#  - distro
-#  - local
-
-
 ceph_repository: community
-#valid_ceph_repository:
-#  - community
-#  - rhcs
-#  - dev
-#  - uca
-#  - custom
-#  - obs
-
 
 # REPOSITORY: COMMUNITY VERSION
 #
@@ -161,6 +139,7 @@ nfs_ganesha_stable: true # use stable repos for nfs-ganesha
 nfs_ganesha_stable_branch: V2.8-stable
 nfs_ganesha_stable_deb_repo: "{{ ceph_mirror }}/nfs-ganesha/deb-{{ nfs_ganesha_stable_branch }}/{{ ceph_stable_release }}"
 
+ceph_45drives_repo_url: "http://images.45drives.com/ceph/rpm/el7" 
 
 ######################
 # CEPH CONFIGURATION #
@@ -279,9 +258,9 @@ cephfs_pools:
 #is_hci: false
 #hci_safety_factor: 0.2
 #non_hci_safety_factor: 0.7
-#osd_memory_target: 4294967296
+osd_memory_target: 2147483648
 #journal_size: 5120 # OSD journal size in MB
-#block_db_size: -1 # block db size in bytes for the ceph-volume lvm batch. -1 means use the default of 'as big as possible'.
+block_db_size: 32212254720 # block db size in bytes for the ceph-volume lvm batch. -1 means use the default of 'as big as possible'.
 public_network: 192.168.0.0/16
 #cluster_network: 10.0.0.0/24
 #osd_mkfs_type: xfs
@@ -305,6 +284,8 @@ osd_auto_discovery_exclude: "dm-*|loop*|md*"
 #
 #mds_use_fqdn: false # if set to true, the MDS name used will be the fqdn in the ceph.conf
 #mds_max_mds: 1
+#mds_max_file_size: 10995116277760
+#mds_min_standby_daemons: 1
 
 ## Rados Gateway options
 #
@@ -320,7 +301,7 @@ radosgw_civetweb_options: "num_threads={{ radosgw_civetweb_num_threads }}"
 radosgw_frontend_port: "{{ radosgw_civetweb_port if radosgw_frontend_type == 'civetweb' else '8080' }}"
 radosgw_frontend_options: "{{ radosgw_civetweb_options if radosgw_frontend_type == 'civetweb' else '' }}"
 radosgw_thread_pool_size: 512
-
+radosgw_frontend_ssl_certificate:
 
 # You must define either radosgw_interface, radosgw_address.
 # These variables must be defined at least in all.yml and overrided if needed (inventory host file or group_vars/*.yml).
@@ -503,115 +484,15 @@ ceph_conf_overrides:
 #docker_pull_retry: 3
 #docker_pull_timeout: "300s"
 
-
-#############
-# OPENSTACK #
-#############
-#openstack_config: false
-#openstack_glance_pool:
-#  name: "images"
-#  pg_num: "{{ osd_pool_default_pg_num }}"
-#  pgp_num: "{{ osd_pool_default_pg_num }}"
-#  rule_name: "replicated_rule"
-#  type: 1
-#  erasure_profile: ""
-#  expected_num_objects: ""
-#  application: "rbd"
-#  size: "{{ osd_pool_default_size }}"
-#  min_size: "{{ osd_pool_default_min_size }}"
-#openstack_cinder_pool:
-#  name: "volumes"
-#  pg_num: "{{ osd_pool_default_pg_num }}"
-#  pgp_num: "{{ osd_pool_default_pg_num }}"
-#  rule_name: "replicated_rule"
-#  type: 1
-#  erasure_profile: ""
-#  expected_num_objects: ""
-#  application: "rbd"
-#  size: "{{ osd_pool_default_size }}"
-#  min_size: "{{ osd_pool_default_min_size }}"
-#openstack_nova_pool:
-#  name: "vms"
-#  pg_num: "{{ osd_pool_default_pg_num }}"
-#  pgp_num: "{{ osd_pool_default_pg_num }}"
-#  rule_name: "replicated_rule"
-#  type: 1
-#  erasure_profile: ""
-#  expected_num_objects: ""
-#  application: "rbd"
-#  size: "{{ osd_pool_default_size }}"
-#  min_size: "{{ osd_pool_default_min_size }}"
-#openstack_cinder_backup_pool:
-#  name: "backups"
-#  pg_num: "{{ osd_pool_default_pg_num }}"
-#  pgp_num: "{{ osd_pool_default_pg_num }}"
-#  rule_name: "replicated_rule"
-#  type: 1
-#  erasure_profile: ""
-#  expected_num_objects: ""
-#  application: "rbd"
-#  size: "{{ osd_pool_default_size }}"
-#  min_size: "{{ osd_pool_default_min_size }}"
-#openstack_gnocchi_pool:
-#  name: "metrics"
-#  pg_num: "{{ osd_pool_default_pg_num }}"
-#  pgp_num: "{{ osd_pool_default_pg_num }}"
-#  rule_name: "replicated_rule"
-#  type: 1
-#  erasure_profile: ""
-#  expected_num_objects: ""
-#  application: "rbd"
-#  size: "{{ osd_pool_default_size }}"
-#  min_size: "{{ osd_pool_default_min_size }}"
-#openstack_cephfs_data_pool:
-#  name: "manila_data"
-#  pg_num: "{{ osd_pool_default_pg_num }}"
-#  pgp_num: "{{ osd_pool_default_pg_num }}"
-#  rule_name: "replicated_rule"
-#  type: 1
-#  erasure_profile: ""
-#  expected_num_objects: ""
-#  application: "rbd"
-#  size: "{{ osd_pool_default_size }}"
-#  min_size: "{{ osd_pool_default_min_size }}"
-#openstack_cephfs_metadata_pool:
-#  name: "manila_metadata"
-#  pg_num: "{{ osd_pool_default_pg_num }}"
-#  pgp_num: "{{ osd_pool_default_pg_num }}"
-#  rule_name: "replicated_rule"
-#  type: 1
-#  erasure_profile: ""
-#  expected_num_objects: ""
-#  application: "rbd"
-#  size: "{{ osd_pool_default_size }}"
-#  min_size: "{{ osd_pool_default_min_size }}"
-
-#openstack_pools:
-#  - "{{ openstack_glance_pool }}"
-#  - "{{ openstack_cinder_pool }}"
-#  - "{{ openstack_nova_pool }}"
-#  - "{{ openstack_cinder_backup_pool }}"
-#  - "{{ openstack_gnocchi_pool }}"
-#  - "{{ openstack_cephfs_data_pool }}"
-#  - "{{ openstack_cephfs_metadata_pool }}"
-
-
-# The value for 'key' can be a pre-generated key,
-# e.g key: "AQDC2UxZH4yeLhAAgTaZb+4wDUlYOsr1OfZSpQ=="
-# By default, keys will be auto-generated.
-#
-#openstack_keys:
-#  - { name: client.glance, caps: { mon: "profile rbd", osd: "profile rbd pool=volumes, profile rbd pool={{ openstack_glance_pool.name }}"}, mode: "0600" }
-#  - { name: client.cinder, caps: { mon: "profile rbd", osd: "profile rbd pool={{ openstack_cinder_pool.name }}, profile rbd pool={{ openstack_nova_pool.name }}, profile rbd pool={{ openstack_glance_pool.name }}"}, mode: "0600" }
-#  - { name: client.cinder-backup, caps: { mon: "profile rbd", osd: "profile rbd pool={{ openstack_cinder_backup_pool.name }}"}, mode: "0600" }
-#  - { name: client.gnocchi, caps: { mon: "profile rbd", osd: "profile rbd pool={{ openstack_gnocchi_pool.name }}"}, mode: "0600", }
-#  - { name: client.openstack, caps: { mon: "profile rbd", osd: "profile rbd pool={{ openstack_glance_pool.name }}, profile rbd pool={{ openstack_nova_pool.name }}, profile rbd pool={{ openstack_cinder_pool.name }}, profile rbd pool={{ openstack_cinder_backup_pool.name }}"}, mode: "0600" }
-
-
 #############
 # DASHBOARD #
 #############
 dashboard_enabled: true
+# When true HAProxy will be installed on the server in the metric group
+dashboard_haproxy: true
+dashboard_haproxy_port: 80
+dashboard_haproxy_protocol: http
+dashboard_haproxy_cert:
 # Choose http or https
 # For https, you should set dashboard.crt/key and grafana.crt/key
 dashboard_protocol: http
@@ -649,6 +530,7 @@ grafana_plugins:
   - vonage-status-panel
   - grafana-piechart-panel
 grafana_allow_embedding: True
+grafana_port: 3000
 prometheus_container_image: prom/prometheus:latest
 prometheus_container_cpu_period: 100000
 prometheus_container_cpu_cores: 2
@@ -657,6 +539,7 @@ prometheus_container_memory: 4
 prometheus_data_dir: /var/lib/prometheus
 prometheus_conf_dir: /etc/prometheus
 prometheus_user_id: '65534'  # This is the UID used by the prom/prometheus container image
+prometheus_port: 9091
 alertmanager_container_image: prom/alertmanager:latest
 alertmanager_container_cpu_period: 100000
 alertmanager_container_cpu_cores: 2
@@ -664,7 +547,7 @@ alertmanager_container_cpu_cores: 2
 alertmanager_container_memory: 4
 alertmanager_data_dir: /var/lib/alertmanager
 alertmanager_conf_dir: /etc/alertmanager
-
+alertmanager_port: 9093
 
 ###############
 # DEPRECATION #
