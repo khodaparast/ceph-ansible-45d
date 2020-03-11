@@ -89,6 +89,8 @@ ctdb_tunables:
   - key: 'TakeoverTimeout'
     value: '5'
 
+ctdb_lock_name: ctdb_lock
+
 rados_locking: true
 
 # Config Overrides
