@@ -539,6 +539,7 @@ ceph_conf_overrides: {}
 #############
 # OS TUNING #
 #############
+disable_power_saving: true
 
 disable_transparent_hugepage: "{{ false if osd_objectstore == 'bluestore' else true }}"
 os_tuning_params:
@@ -551,7 +552,6 @@ os_tuning_params:
 # Set this to a byte value (e.g. 134217728)
 # A value of 0 will leave the package default.
 ceph_tcmalloc_max_total_thread_cache: 0
-
 
 ##########
 # DOCKER #

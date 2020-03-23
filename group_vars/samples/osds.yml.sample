@@ -15,7 +15,7 @@ dummy:
 # at their disposal, some people might want to have it
 # distributed on OSD nodes. Setting 'copy_admin_key' to 'true'
 # will copy the admin key to the /etc/ceph/ directory
-#copy_admin_key: false
+copy_admin_key: true
 
 
 ##############
@@ -35,7 +35,7 @@ dummy:
 
 #devices:
 #  - /dev/sdb
-#  - /dev/sdc
+#  - /dev/sdk
 #  - /dev/sdd
 #  - /dev/sde
 
@@ -49,39 +49,16 @@ dummy:
 # this option since ceph-disk has a built-in check which looks for empty devices.
 # Thus devices with existing partition tables will not be used.
 #
-#osd_auto_discovery: false
+osd_auto_discovery: true
+
+chassis_size: 15
+
+hybrid_chassis: false
 
 # Encrypt your OSD device using dmcrypt
 # If set to True, no matter which osd_objecstore you use the data will be encrypted
 #dmcrypt: False
 
-# Use ceph-volume to create OSDs from logical volumes.
-# lvm_volumes is a list of dictionaries.
-#
-# Filestore: Each dictionary must contain a data, journal and vg_name key. Any
-# logical volume or logical group used must be a name and not a path.  data
-# can be a logical volume, device or partition. journal can be either a lv or partition.
-# You can not use the same journal for many data lvs.
-# data_vg must be the volume group name of the data lv, only applicable when data is an lv.
-# journal_vg is optional and must be the volume group name of the journal lv, if applicable.
-# For example:
-# lvm_volumes:
-#   - data: data-lv1
-#     data_vg: vg1
-#     journal: journal-lv1
-#     journal_vg: vg2
-#     crush_device_class: foo
-#   - data: data-lv2
-#     journal: /dev/sda1
-#     data_vg: vg1
-#   - data: data-lv3
-#     journal: /dev/sdb1
-#     data_vg: vg2
-#   - data: /dev/sda
-#     journal: /dev/sdb1
-#   - data: /dev/sda1
-#     journal: /dev/sdb1
-#
 # Bluestore: Each dictionary must contain at least data. When defining wal or
 # db, it must have both the lv name and vg group (db and wal are not required).
 # This allows for four combinations: just data, data and wal, data and wal and
@@ -106,10 +83,88 @@ dummy:
 #   - data: /dev/sda
 #   - data: /dev/sdb1
 
-#lvm_volumes: []
+lvm_volumes:
+#  - data: /dev/1-1
+#  - data: /dev/1-2
+#  - data: /dev/1-3
+#  - data: /dev/1-4
+#  - data: /dev/1-5
+#  - data: /dev/1-6
+#  - data: /dev/1-7
+#  - data: /dev/1-8
+#  - data: /dev/1-9
+#  - data: /dev/1-10
+#  - data: /dev/1-11
+#  - data: /dev/1-12
+#  - data: /dev/1-13
+#  - data: /dev/1-14
+#  - data: /dev/1-15
+#  - data: /dev/2-1
+#  - data: /dev/2-2
+#  - data: /dev/2-3
+#  - data: /dev/2-4
+#  - data: /dev/2-5
+#  - data: /dev/2-6
+#  - data: /dev/2-7
+#  - data: /dev/2-8
+#  - data: /dev/2-9
+#  - data: /dev/2-10
+#  - data: /dev/2-11
+#  - data: /dev/2-12
+#  - data: /dev/2-13
+#  - data: /dev/2-14
+#  - data: /dev/2-15
+#  - data: /dev/3-1
+#  - data: /dev/3-2
+#  - data: /dev/3-3
+#  - data: /dev/3-4
+#  - data: /dev/3-5
+#  - data: /dev/3-6
+#  - data: /dev/3-7
+#  - data: /dev/3-8
+#  - data: /dev/3-9
+#  - data: /dev/3-10
+#  - data: /dev/3-11
+#  - data: /dev/3-12
+#  - data: /dev/3-13
+#  - data: /dev/3-14
+#  - data: /dev/3-15
+#  - data: /dev/4-1
+#  - data: /dev/4-2
+#  - data: /dev/4-3
+#  - data: /dev/4-4
+#  - data: /dev/4-5
+#  - data: /dev/4-6
+#  - data: /dev/4-7
+#  - data: /dev/4-8
+#  - data: /dev/4-9
+#  - data: /dev/4-10
+#  - data: /dev/4-11
+#  - data: /dev/4-12
+#  - data: /dev/4-13
+#  - data: /dev/4-14
+#  - data: /dev/4-15
+
 #crush_device_class: ""
 #osds_per_device: 1
 
+device_crush_ssd_rule:
+  name: replicated_ssd
+  root: default
+  type: host
+  device: ssd
+  default: false
+
+device_crush_hdd_rule:
+  name: replicated_hdd
+  root: default
+  type: host
+  device: hdd
+  default: true
+
+device_crush_rules:
+  - "{{ device_crush_hdd_rule }}"
+  - "{{ device_crush_ssd_rule }}"
 
 ##########
 # DOCKER #
