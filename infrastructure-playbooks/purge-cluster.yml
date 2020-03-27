@@ -435,6 +435,37 @@
     failed_when: false
     register: ceph_volume_present
 
+
+
+  - name: resolve device link(s)
+    command: readlink -f {{ item.data }}
+    changed_when: false
+    check_mode: no
+    with_items: "{{ lvm_volumes }}"
+    register: lvm_volumes_prepare_resolved
+    when:
+      - lvm_volumes | default([]) | length > 0
+      - ceph_volume_present.rc == 0
+
+  - name: set_fact build lvm_volumes from resolved symlinks
+    set_fact:
+      lvm_volumes_resolved: "{{ lvm_volumes_resolved | default([]) + [ item.stdout ] }}"
+    with_items: "{{ lvm_volumes_prepare_resolved.results }}"
+    when:
+      - lvm_volumes | default([]) | length > 0
+      - ceph_volume_present.rc == 0
+
+  - name: zap and destroy aliasd osds created by ceph-volume with lvm_volumes
+    ceph_volume:
+      data: "{{ item }}"
+      action: "zap"
+    environment:
+      CEPH_VOLUME_DEBUG: 1
+    with_items: "{{ lvm_volumes_resolved }}"
+    when:
+      - lvm_volumes | default([]) | length > 0
+      - ceph_volume_present.rc == 0
+
   - name: zap and destroy osds created by ceph-volume with lvm_volumes
     ceph_volume:
       data: "{{ item.data }}"
@@ -609,7 +640,9 @@
     - "{{ nfs_group_name|default('nfss') }}"
     - "{{ client_group_name|default('clients') }}"
     - "{{ mgr_group_name|default('mgrs') }}"
+    - "{{ rgwloadbalancer_group_name |default('rgwloadbalancers') }}"
     - metrics
+    - iscsigws
 
   gather_facts: false # Already gathered previously
 
